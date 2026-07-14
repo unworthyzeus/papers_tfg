@@ -1,0 +1,327 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+% \usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{mathptmx}
+
+% Own additions
+\usepackage{lipsum}
+\usepackage{tikz,cite}
+\usepackage{pgfplots}
+\usetikzlibrary{decorations.pathreplacing,positioning}
+\usepackage{caption,multirow,booktabs}
+\usepackage{subcaption}
+\usepackage[multiple]{footmisc}
+\DeclareMathOperator{\E}{E}
+\newcommand{\zh}[1]{{\color{red}[Genia: #1]}}
+% \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+%     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{On-Board equipment dependent Near Midair Collision volume definition for  cooperative UAVs\\
+% {\footnotesize \textsuperscript{*}Note: Sub-titles are not captured in Xplore and
+% should not be used}
+% \thanks{Identify applicable funding agency here. If none, delete this.}
+}
+
+\author{\IEEEauthorblockN{Evgenii Vinogradov, Sofie Pollin}
+\IEEEauthorblockA{\textit{Department of Electrical Engineering, KU Leuven, Belgium} \\
+Email: \{evgenii.vinogradov, sofie.pollin\}@kuleuven.be}
+% \and
+% \IEEEauthorblockN{2\textsuperscript{nd} Given Name Surname}
+% \IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+% \textit{name of organization (of Aff.)}\\
+% City, Country \\
+% email address or ORCID}
+% \and
+% \IEEEauthorblockN{3\textsuperscript{rd} Given Name Surname}
+% \IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+% \textit{name of organization (of Aff.)}\\
+% City, Country \\
+% email address or ORCID}
+% \and
+% \IEEEauthorblockN{4\textsuperscript{th} Given Name Surname}
+% \IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+% \textit{name of organization (of Aff.)}\\
+% City, Country \\
+% email address or ORCID}
+% \and
+% \IEEEauthorblockN{5\textsuperscript{th} Given Name Surname}
+% \IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+% \textit{name of organization (of Aff.)}\\
+% City, Country \\
+% email address or ORCID}
+% \and
+% \IEEEauthorblockN{6\textsuperscript{th} Given Name Surname}
+% \IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+% \textit{name of organization (of Aff.)}\\
+% City, Country \\
+% email address or ORCID}
+}
+
+\maketitle
+
+\begin{abstract}
+drones are smaller, for this scales instrumental errors are probably predominant, uNMAC becomes on-board equipment-dependent. Cheap equipment - smaller airspace capacity, more expensive - higher capacity. an economical trade-off?
+\end{abstract}
+
+\begin{IEEEkeywords}
+component, formatting, style, styling, insert
+\end{IEEEkeywords}
+
+\section{Introduction}
+Exploitation rules and design practices used by the drone industry and regulators are commonly based on their manned aviation predecessors. 
+On the one hand, using the vast experience accumulated during the past century can save a lot of efforts on the trials and errors. 
+However, on the other hand, now we have a perfect opportunity to critically revise some of the assumptions widely used in civil aviation and adapt them to the new agent in the airspace (namely UAVs). 
+This paper aims at the latter.
+
+
+For example, Near Mid-Air Collision (NMAC) is one of the core terms used in both domains. 
+In \cite{eurocontrol}, EUROCONTROL defines NMAC as an encounter in which the horizontal separation $d_H$ between two aircraft is less than 150 m (500 ft), and the vertical separation $d_V$  is less than 30 m (100 ft). 
+The rate of NMACs to actual collisions is 10 to 1. 
+These dimensions are used to calculate other key volumes and distances used in aviation (e.g., Remaining Well Clear – RWC or separation distances for estimating the performance of Detect-And-Avoid – DAA systems). 
+The use of these numbers (i.e., 150 m, 30 m and 1/10) can be traced back to work \cite{NMAC_sg} published in 1969 by NMAC Study Group established by Federal Aviation Administration (FAA). 
+Though the report results have empirically proven to be suitable for manned aviation (otherwise, they would not have been used for 50 years), the work would not have passed a rigorous peer-review process in the 21st century. 
+For example, the NMAC dimensions are calculated based on a very nice statistical methodology. 
+However, the data used for the estimations were based on the distances self-estimated and reported by pilots and contained 4500 “near misses” that occurred in Calendar year 1968. 
+This quality of data is not acceptable in the age of GPS and big data. 
+Moreover, 150x30 m volume is too large to adequately describe a situation when the collision probability is 1 to 10.
+Especially, when two UAVs with a wingspan of 1 m (or less) are considered. Unfortunately, we can observe that NMAC is still used for small UAVs \cite{Assure,Weinert16,Cook15,Weinert18}. 
+This leads to over pessimistic estimations of airspace capacity and economic potential of UAV use-cases.
+
+This paper is focused on proposing a modified version of NMAC, which is applicable for small cooperative UAVs. 
+Let us call it UAV NMAC (uNMAC). 
+In contrast to previous works, we assume that UAVs can communicate with each other through UAV-to-UAV channels and process information autonomously so that the ground infrastructure is not required. 
+Depending on the data exchanged (e.g., coordinates, speed and direction of movement, UAV dimensions) and its quality (frequency of updates or localization errors), uNMAC dimensions will be different. 
+
+\section{Related works}
+\subsection{State-of-the-Art overview}
+Since defining various separation distances (a more general term combining NMAC, MAC, RWC distances etc.) is critical for multiple UAV exploitation aspects such as demand and capacity balancing, assurance of targeted safety levels (TSL), or design of supporting wireless technologies, this issue attracted significant attention of many actors (e.g., FAA \cite{Assure,Cook15}, NASA \cite{Cook15}, laboratories of national security agencies \cite{Weinert16,Weinert18,Weinert22}, SESAR \cite{Bubbles21}). 
+The correspondent contributions are summarized in Table~\ref{Tab:sota}. 
+
+\begin{table}[h]
+\color{black}
+\centering
+\caption{NMAC state of the art overview}
+\label{Tab:sota}
+\begin{tabular}{c||c|c|c|c}
+\midrule
+\multirow{ 2}{*}{Source}& Reference & Applica-& Communi-&GNSS \\ 
+& volume& bility& cation&support\\ \midrule
+
+
+\multirow{ 2}{*}{ASSURE \cite{Assure}}& NMAC&\multirow{ 2}{*}{U2M}&\multirow{ 2}{*}{NA}&\multirow{ 2}{*}{NA}\\
+&(150x30~m)&&&\\
+\midrule
+SARP \cite{Weinert16,Cook15}& NMAC&U2M&NA&NA\\\midrule
+MIT LL\cite{Weinert18}& NMAC &U2M&NA&NA\\ \midrule
+MIT LL\cite{Weinert22}& sNMAC &U2U&NA&NA\\ \midrule
+\multirow{ 2}{*}{BUBBLES \cite{Bubbles21}}& \multirow{ 2}{*}{MAC} &U2M&via&Upper\\
+&&U2U&ground&bound\\ \midrule
+\multirow{ 2}{*}{This work}& defined&\multirow{ 2}{*}{U2U}&\multirow{ 2}{*}{U2U}&\multirow{ 2}{*}{Actual}\\
+& pairwise&&&\\
+\midrule
+
+\end{tabular}
+\\[3mm]
+\end{table}
+
+
+The works \cite{Assure,Weinert16,Cook15,Weinert18} are focused on deriving RWC volumes based on NMAC and applicable only for UAV-to-manned (U2M) aircraft conflicts. It was a major concern during the initial phases of introducing UAVs into National Airspace (NAS).
+U2U conflicts attracted attention with a certain delay: for example, \cite{Weinert22,Bubbles21} were published in 2022 and 2021, respectively. Work \cite{Weinert22} from MIT Lincoln Laboratory suggests using small NMAC (sNMAC) volume as a starting point for further separation distance calculations. Analogously to \cite{NMAC_sg} where NMAC dimensions roughly reflected the sum of wingspans of two average manned aircraft, the authors of \cite{Weinert22} suggested to define sNMAC  based on the maximum UAV wingspan (7.5 m) found in a database containing UAV characteristics\footnote{http://roboticsdatabase.auvsi.org/home}. 
+MAC probability of the two largest UAVs is analyzed based on Monte Carlo simulation (MAC to NMAC ratio is confirmed to be close to the conventional 1 to 10). 
+
+BUBBLES project proposes an approach assuming the Specific Operations Risk Assessment (SORA) risk model \cite{Jarus19} extended to consider UAS operations. 
+In contrast to \cite{Assure,Weinert16,Cook15,Weinert18,Weinert22}, the model aims at assuring fatal injuries to third parties on the ground per flight hour instead of MAC probability. 
+BUBBLES separation estimations consider Strategic and Tactical Conflict Management \cite{icao_deconf, Vinogradov20} performed by Air or Unmanned Aerial System Traffic Management (ATM and UTM) systems. 
+This implies that UAV pilots are able to communicate with the ground infrastructure and change their behavior following recommendations. 
+Note that BUBBLES approach considers the presence of a human in the loop, which i) makes the system prone to human error and ii) significantly slows down the system response time and, consequently, increases the required separation distances (i.e., reduces the airspace capacity). 
+Another important feature of \cite{Bubbles21} is the consideration of several errors which can be expected in real-life operations. 
+The most important one (introducing 40 m error out of total 41 m) is coordinate uncertainty due to errors induced by Global Navigation Satellite Systems (GNSS). 
+Note that the value of GNSS error is based on the worst-case performance deduced from the literature.
+
+\subsection{State-of-the-Art limitations}
+SoTA U2M separation modelling is well investigated. 
+U2U separation is still being defined. 
+The solutions available now are either based on non-cooperative UAVs \cite{Weinert22} or consider communication with ground infrastructure \cite{Bubbles21}. 
+Moreover, both solutions use several conservative assumptions as described above. 
+BUBBLES project offers an interesting solution, but it requires ground infrastructure. 
+Such a centralized solution (surely attractive for potential UTM service providers as it is a lucrative niche) may have scalability problems and be sensitive to faulty functioning of ground equipment. 
+
+This work proposes a solution in which safe UAV operations are ensured by separation distances autonomously calculated and ensured via on-board processing. Such a solution will be required, for instance, by U3 phase of U-Space where UAVs are expected to benefit from assistance for conflict detection and automated detect and avoid functionalities. Moreover, this cooperative U2U solution can be used as a backup for emergency cases when UTM service stops being available. 
+
+On the other hand, sNMAC volume \cite{Weinert22} is calculated based on a sum of maximum wingspans (i.e., around 15 m). According to the UAV database, small UAVs' wingspans vary from 10 cm to 7.5 m; consequently, sNMAC is based on a worst-case scenario and will not ensure the most efficient use of the airspace. In this work, we suggest defining the \textit{smallest possible} uNMAC as a sum of \textit{individual} wingspans of the UAVs (starting from as little as 20 cm or 8 inches).  
+\textbf{shall you say about individual errors too?}
+
+
+\section{Methods}
+\textbf{For the targeted uNMAC dimensions, the influence of UAV location uncertainty becomes critical.} 
+The uncertainty can be caused by a range of factors such as Global Navigation Satellite Systems (GNSS) errors, UAV displacement due to movement, and delays in reporting the location coordinates (i.e., errors induced by wireless communication performance). If all these factors are taken into account, uNMAC dimensions become mostly dependent on the performance of on-board sensors and communication modules of the UAVs. Moreover, when the UAVs exchange only their coordinates, we must assume upper bounds for all these errors. 
+Consequently, uNMAC dimensions can be reduced if relevant information is communicated.
+
+For sake of simplicity, let us assume that GNSS update and broadcasting (as it is the most conventional communication mode for aircraft) rates $\Delta t^{GNSS}$ are the same. In other words, once the location is updated, this update is broadcasted straight away. 
+%Moreover, we assume that $\Delta t^{GNSS}>\Delta t^{COM}$ since GNSS update rates usually are lower than the broadcasting rates: for example, in GPS, $\Delta t^{GNSS}$=0,125…5 s while $\Delta t^{COM}$ can be as small as 0,001 s (theoretically achievable with sidelink communications in 5G). In Fig.~\ref{Fig:Idea}, we assumed that for each $\Delta t^{COM}$, the GNSS coordinates are locally updated based on the latest available coordinates and velocity measurements. 
+Now we may express the size of the uncertainty area around one UAV (shown in orange in Fig.~\ref{Fig:Idea}) as
+\begin{equation}\label{eq:uNMAC}
+    d = d_{AF} + \epsilon^{LOC} + V\cdot\Delta t,
+\end{equation}
+where $d^{AF}$ is the airframe size of the given UAV, $V$ is velocity (speed and direction),   $\epsilon^{LOC}$ denotes the instrumental error of the module used for self-localization (e.g., GPS). As the UAV can be anywhere within this area, uNMAC distance can be calculated as a sum of two individual areas around UAV$_1$ and UAV$_2$:
+\begin{equation}
+    d_{uNMAC} = d_{1} + d_{2}.
+\end{equation}
+Note that a Midair Collision (MAC) happens if the distance between two UAVs is smaller than $\frac{d_{AF,1}+d_{AF,2}}{2}$. However, due to the positioning uncertainty, we must ensure that the inter-UAV distance is larger than $d_{uNMAC}$.
+
+\subsection{Localization error}
+Though there are many possible solutions for UAVs' self-localization (e.g., based of visual Simultaneous Localization and Mapping - SLAM \cite{Vinogradov21}), this work is based on using GPS as it is the most common solution used nowadays. Conclusions of this paper can be easily extended to SLAM or other GNSS such as Galileo, GLONASS, and BeiDou by using the range estimation errors reported by these systems. 
+
+Conventionally, the positioning error in GPS is modeled as a normally distributed random variable $\mathcal{N}(0,\sigma^2)$ with zero mean and the standard deviation $\sigma$ depending on several factors. As stated by the GPS performance standards \cite{GPS_SPS_2020}, the positioning error can significantly differ depending on the age of data (AOD), which is the elapsed time since the Control Segment generated the satellite clock/ephemeris prediction used to create the navigation message data upload. Different errors listed in the document (see \cite{GPS_SPS_2020}, Table 3.4-1) are summarized in Table~\ref{tab:gps}. Note that in the table we give $3\sigma$ to cover 99.8\% of possible errors. In some cases \cite{Bubbles21}, the upper bound of the GPS positioning error is set to 40 meters.
+\begin{table}[]
+     \caption{GPS Positioning Service Accuracy Standards}   \centering
+    \begin{tabular}{c|c}
+        $3\sigma$, m & Accuracy standard \\
+        \hline
+         5.7& Normal Operations at Zero AOD\\
+         10.5&Normal Operations over all AODs\\
+         13.85&Normal Operations at Any AOD\\
+         30&Worst case, during Normal Operations\\
+         %\hline
+    \end{tabular}
+
+    \label{tab:gps}
+\end{table}
+
+In this paper, we are not interested in the error per se; we rather target calculating of the uncertainty area expansion due to the localization error. Any localization error causes an increase of the uncertainty area $\epsilon^{LOC}=|X|$, where $X$ follows a normal distribution $\mathcal{N}(0,\sigma^2)$. Consequently, $\epsilon^{LOC}$ follows the Half-Normal distribution:
+\begin{equation}
+    f(x,\sigma)=\frac{\sqrt{2}}{\sigma\sqrt{\pi}}\exp{-\frac{x^2}{2\sigma^2}},  \quad   x\geq0.
+\end{equation}
+Based on this distribution, we may derive the probability density function of $\epsilon^{LOC}_1+\epsilon^{LOC}_2$ as
+\begin{eqnarray}
+    f(x)=\frac{1}{\sqrt{\sigma^2_1+\sigma^2_2}} \sqrt{\frac{2}{\pi}} \cdot \exp{\Big(-\frac{x^2}{2(\sigma^2_1+\sigma^2_2)}}\Big) \times \nonumber\ \\
+    \Bigg[ \mathrm{erf} \Bigg(\frac{\sigma_1 x}{\sqrt{2}\sigma_2 \sqrt{\sigma_1^2+\sigma^2_2)}}\Bigg)+
+    \mathrm{erf} \Bigg(\frac{\sigma_2 x}{\sqrt{2}\sigma_1 \sqrt{\sigma_1^2+\sigma^2_2)}}\Bigg) \Bigg],
+\end{eqnarray}
+where $\sigma_{1,2}$ are the standard deviations of the errors estimated by UAVs 1 and 2, respectively, and $\mathrm{erf}(\cdot)$ is the error function.
+
+\subsection{UAV velocity}\label{sec:velocity}
+An aircraft has many different defined airspeeds; these
+are known as V-speeds. In \cite{Weinert18}, two V-speeds were leveraged when defining the representative UAV: cruise $V_C$, the speed at which the
+aircraft is designed for optimum performance, and the maximum operating speed $V_{max}$. Under an assumption that most UAV operators will leverage the vendor recommended performance guidelines, the authors suggested to model the UAV airspeeds by means of a Gaussian distributions $\mathcal{N}(\mu_v,\sigma^2_v)$ with $\mu_v=V_C$ and a heuristically defined standard deviation:
+\begin{equation}\label{eq:speed_sigma}
+    \sigma_v = \frac{V_{max}-V_c}{3}.
+\end{equation}
+
+Based on the aforementioned UAV database, the authors defined four UAV categories based on the correspondent speeds and maximum gross takeoff weights (MGTOW), see Table~\ref{tab:velocity}. 
+\begin{table}[]
+    \centering
+        \caption{Representative UAV categories}
+    \begin{tabular}{c|c|c|c|c}
+        &1&2&3&4  \\
+        \hline
+        MGTOW, kg&0-1.8&0-9&0-9&9-25\\
+        Mean cruise speed $V_c$, m/s&12.9&10.3&15.4&30.7\\
+        Max airspeed $V_{max}, m/s$&20.6&15.4&30.7&51.5\\
+        
+    \end{tabular}
+    \label{tab:velocity}
+\end{table}
+
+Note that the maximum relative speed $V_{rel}^{max}$ can be calculated as a sum of two independent normal variables, consequently, it follows the Gaussian distribution $\mathcal{N}(\mu_{v1}+\mu_{v2},\sigma^2_{v1}+\sigma^2_{v2})$, where $\mu_{v1, v2}$ and $\sigma^2_{v1,v2}$ are the speed distribution parameters for the UAVs involved in the potential conflict.
+
+However, depending on the movement directions of the two UAVs, the relative speed can take values $-V_{rel}^{max}\geq V_{rel}\geq V_{rel}^{max}$. The relative movement direction can be modeled as a uniformly distributed random variable $Y$ taking values from $-\pi$ to $\pi$. Consequently, the direction-dependent velocity can be modeled as
+\begin{equation}
+    \vec{V}= V_{rel}^{max} \cdot cos(Y),
+\end{equation}
+where $V_{rel}^{max}$ follows a Normal distribution with a probability density function $f_{N}(x|\mu_{v1}+\mu_{v2},\sigma^2_{v1}+\sigma^2_{v2})$, where $\mu_{v1, v2}$ and $\sigma^2_{v1,v2}$ and $X=cos(Y)$ follows the distribution defined by the following probability density function (PDF):
+\begin{equation}\label{eq:cos}
+    f_{dir}(x)=\frac{1}{\pi \sqrt{1-x^2}}, \quad -1<x<1.
+\end{equation}
+Note that $x$ in \eqref{eq:cos} can take negative values. In this case, the UAVs are moving in the opposite directions and their relative movement does not create any hazard for the aircraft. Consequently, we are rather interested in positive values of $x$ as we are evaluating the uncertainty zone expansion caused by the mobility. Finally, as we know the PDFs of the $ V_{rel}^{max}$ and $cos(Y)$, we may derive the PDF of the mobility-induced expansion $\vec{V}\Delta t$ of $d$ using
+\begin{eqnarray}
+    f_{V\Delta t}(z)=  \int_{-\infty}^{+\infty} f_{N}\Big(x|\Delta t(\mu_{v1}+\mu_{v2}),\Delta t^2(\sigma^2_{v1}+\sigma^2_{v2})\Big)\times\nonumber \\f_{dir}(z/x)\frac{1}{|x|} dx.
+\end{eqnarray}
+
+\subsection{Location update and wireless broadcasting rates}
+GPS module producers offer a wide range of equipment supporting various position update rates $\Delta t$. The update rate can go as high as 50~Hz (e.g., Venus838FLPx by SkyTra is able to provide localization/position updates every $\Delta t_{loc}$= 20~ms) while many accessible consumer grade modules mostly offer between 0.2-8 Hz update rates.
+
+While formulating uNMAC in \eqref{eq:uNMAC}, we assumed that the location update is directly broadcasted using a wireless communication technology. An overview of the technologies is provided in Table~\ref{tab:techs}. Note that wireless technology and the self-localization methods/equipment should be done in a joint manner to ensure rational use of resources through an alignment of $\Delta t_{loc}$ and $\Delta t_{com}$.
+
+
+\begin{table}[t]
+    \centering
+        \caption{Wireless technologies that can be used for UAV-to-UAV communications}
+    \begin{tabular}{c|c|c|c}
+    Technology & {Range} & {Update rate}& $\Delta t_{com}$  \\
+    \hline
+    Bluetooth LE & 50~m & 100~Hz& 10~ms \\
+    Bluetooth & 100~m & 100~Hz& 10~ms \\
+    RP ADS-B \cite{consiglio2019sense}& 1.2~km & 0.33 - 0.5~Hz& 2-3 s  \\ 
+    LoRa \cite{Vinogradov20} & 10~km & 0.2~Hz& 2 s  \\
+    FLARM \cite{8514548}  & 10~km & 0.33~Hz & 3 s  \\
+    ADS-B & 370~km & 2~msg/s & 0.5~s \\
+    Wi-Fi SSID \cite{9133405}&1~km&60~Hz& 16~ms \\
+    5G NR Sidelink \cite{9345798}&1~km& up to 1-8~kHz& 0.125-1~ms\\
+    \end{tabular}
+
+    \label{tab:techs}
+\end{table}
+
+\subsection{Airframe size}\label{sec:AF}
+The authors of \cite{Weinert22} used a database containing characteristics of UAVs\footnote{http://roboticsdatabase.auvsi.org/home}. They concluded that one of the possible ways to model the airframe size is by using a uniformly distributed random variable not exceeding $AF_{max}=7.5$~meters. Thus, assuming that airframes are symmetric, we may model the distribution of the sum of two half airframe sizes $d_{AF}=(AF_1+AF_2)/2$ as the triangle distribution with the density function
+\begin{equation}
+  f_{AF}(x)=\begin{cases}
+    \frac{x}{AF_{max}^2/4}, & \text{if $0<x<\frac{AF_{max}}{2}$}\\
+    \frac{AF_{max}-x}{AF{max}^2/4}, & \text{if $\frac{AF_{max}}{2}\leq x<AF_{max}$}\\
+    0, & \text{otherwise}.\\
+  \end{cases}
+\end{equation}
+\subsection{Flight simulator}
+In order to assess the influence of the uNMAC volume on the expected airspace capacity, we created a 2D flight simulator considering that all UAVs are flying at the same altitude. Though the practical airspace capacity depends on the number of used flight altitudes, the result obtained for a single height can provide enough information to assess the benefits of sharing more information between the UAVs. 
+
+The simulator considers a squared  area $S$ of 1~km$^2$. Depending on the UAV density $\lambda$, we generate $N=\lambda\cdot S$ UAVs. For each UAV, the start and end points of its trajectory are generated from the uniform distribution; the velocities are drawn from $\mathcal{N}(\mu_v,\sigma^2_v)$ using the parameters taken from Table \ref{tab:velocity} and \eqref{eq:speed_sigma}. Next, all trajectories are checked in a pair-wise manner for collisions/conflicts (i.e., the situations when the distance between two UAVs is smaller than MAC/uNMAC). Note that the airframe sizes are generated from the uniform distribution defined on $(0,7.5]$ meters, as explained in Section~\ref{sec:AF}. For obtaining statistically tractable results, we generate 60000 UAVs trajectories for each density. Finally, we estimate collisions per flight hour $C(\lambda)$.
+
+\section{Results}
+In this section, we demonstrate the distributions 
+
+\begin{figure}
+    \centering
+    \includegraphics{figures/fig_af_gps.eps}
+    \caption{Caption}
+    \label{fig:my_label}
+\end{figure}
+
+For demonstration purposes, as a starting point, let us assume that two UAVs broadcast their Drone IDs containing an identification number, coordinates, speed, and time stamp as specified in \cite{Drone_ID}. 
+Fig.~\ref{Fig:Idea} shows how uNMAC horizontal dimensions change while we gradually increase the amount of shared information and eliminate localization errors caused by i) absence of information about actual GNSS accuracy, ii) absence of information about movement direction, iii) GNSS and communication update rates. 
+The minimal achievable uNMAC dimensions are defined only by the individual UAV wingspans (size). 
+Note that i) the gradient filling indicates the uncertainty of UAV positions, ii) Fig.~\ref{Fig:Idea} is a simplified 2D representation, but the solution is equally valid for 3D uNMAC volume definition.
+
+\begin{figure*}
+       \includegraphics[width=1\linewidth   ]{figures/dr_id.png}
+		\caption{Different uNMAC volume definitions. Rational separation distances can be achieved by means of information exchange. Note that zero errors (indicated by green font) are not achievable in practice, but the errors can be minimized.}
+		\label{Fig:Idea}
+\end{figure*}
+
+
+\section{Results}
+
+\bibliographystyle{IEEEtran}
+\bibliography{main}
+
+% \begin{thebibliography}{00}
+% \bibitem{b1} G. Eason, B. Noble, and I. N. Sneddon, ``On certain integrals of Lipschitz-Hankel type involving products of Bessel functions,'' Phil. Trans. Roy. Soc. London, vol. A247, pp. 529--551, April 1955.
+% \bibitem{b2} J. Clerk Maxwell, A Treatise on Electricity and Magnetism, 3rd ed., vol. 2. Oxford: Clarendon, 1892, pp.68--73.
+% \bibitem{b3} I. S. Jacobs and C. P. Bean, ``Fine particles, thin films and exchange anisotropy,'' in Magnetism, vol. III, G. T. Rado and H. Suhl, Eds. New York: Academic, 1963, pp. 271--350.
+% \bibitem{b4} K. Elissa, ``Title of paper if known,'' unpublished.
+% \bibitem{b5} R. Nicole, ``Title of paper with only first word capitalized,'' J. Name Stand. Abbrev., in press.
+% \bibitem{b6} Y. Yorozu, M. Hirano, K. Oka, and Y. Tagawa, ``Electron spectroscopy studies on magneto-optical media and plastic substrate interface,'' IEEE Transl. J. Magn. Japan, vol. 2, pp. 740--741, August 1987 [Digests 9th Annual Conf. Magnetics Japan, p. 301, 1982].
+% \bibitem{b7} M. Young, The Technical Writer's Handbook. Mill Valley, CA: University Science, 1989.
+% \end{thebibliography}
+\vspace{12pt}
+\color{red}
+IEEE conference templates contain guidance text for composing and formatting conference papers. Please ensure that all template text is removed from your conference paper prior to submission to the conference. Failure to remove the template text from your paper may result in your paper not being published.
+
+\end{document}

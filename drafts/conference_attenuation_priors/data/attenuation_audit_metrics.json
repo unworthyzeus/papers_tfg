@@ -1,0 +1,16 @@
+{
+  "maps": 2590,
+  "valid_pixels": 423087119,
+  "los_pixels": 391721805,
+  "nlos_pixels": 31365314,
+  "rmse_db": 1.9383239096866178,
+  "mae_db": 1.2318769204348567,
+  "los_rmse_db": 1.7518633714922194,
+  "nlos_rmse_db": 3.5143233109136887,
+  "map_correlation": 0.9477100570040884,
+  "map_correlation_weight": 423087119,
+  "definition": "valid-pixel-weighted mean of per-map Pearson correlations",
+  "calibration_meta": {
+    "n_fit_samples": 11185
+  }
+}

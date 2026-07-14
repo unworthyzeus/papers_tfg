@@ -1,0 +1,428 @@
+\documentclass[conference,twocolumn,a4paper]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amsfonts,amssymb,amsthm}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage[utf8]{inputenc}
+\usepackage{commath}
+\usepackage{scalerel}
+\usepackage{tikz}
+\usepackage[]{changes}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{layouts}
+\usepackage[draft]{hyperref}
+% \usepackage{nohyperref}  % This makes hyperref commands do nothing without errors
+
+% tools for tikzplot
+\usepackage{pgfplots}
+\DeclareUnicodeCharacter{2212}{−}
+\usepgfplotslibrary{groupplots,dateplot}
+\usetikzlibrary{patterns,shapes.arrows}
+\pgfplotsset{compat=newest}
+
+% custom legend
+% https://tex.stackexchange.com/questions/278530/how-i-can-customize-a-legend-on-pgfplots
+
+% https://tex.stackexchange.com/questions/84127/correctly-align-vertical-text-on-a-baseline-in-pgfplots
+\def\mystrut{\vphantom{hg}}
+
+% https://tex.stackexchange.com/questions/204395/add-custom-entry-into-legend-in-pgfplot
+\pgfplotsset{
+    legend image with text/.style={
+        legend image code/.code={%
+            \node[anchor=center] at (0.3cm,0cm) {#1};
+        }
+    },
+}
+
+
+\newcommand{\ac}[1]{{\color{teal}[Achiel: #1]}}
+\newcommand{\zh}[1]{{\color{blue}[Genia: #1]}}
+\newcommand{\sofie}[1]{{\color{red}[Sofie: #1]}}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+    
+
+\begin{document}
+
+\title{
+%Reliable Cellular UAV Communication Using Multi-Operator Diversity and Sidelobe Boosting; 
+Drone delivery: Reliable Cellular UAV Communication Using Multi-Operator Diversity% and Sidelobe Boosting%; 
+%Reliable Cellular Communication for UAV-based Delivery Using Multi-Operator Diversity and Sidelobe Boosting\\
+\thanks{This research is supported by the Research Foundation Flanders (FWO), projects no. S003817N (OmniDrone) and G098020N.}
+}
+
+% \author{\IEEEauthorblockN{1\textsuperscript{st} Given Name Surname}
+% \IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+% \textit{name of organization (of Aff.)}\\
+% City, Country \\
+% email address or ORCID}
+% \and
+% \IEEEauthorblockN{2\textsuperscript{nd} Given Name Surname}
+% \IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+% \textit{name of organization (of Aff.)}\\
+% City, Country \\
+% email address or ORCID}
+% \and
+% \IEEEauthorblockN{3\textsuperscript{rd} Given Name Surname}
+% \IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+% \textit{name of organization (of Aff.)}\\
+% City, Country \\
+% email address or ORCID}
+% }
+
+\author{\IEEEauthorblockN{
+Achiel Colpaert, %\orcidicon{0000-0003-1238-2002},
+Micha\"el Raes,
+Evgenii Vinogradov, %\orcidicon{0000-0002-4156-0317},
+and Sofie Pollin %\orcidicon{0000-0002-1470-2076}
+}
+\IEEEauthorblockA{KU Leuven, ESAT - Department of Electrical Engineering, Kasteelpark Arenberg 10, 3001 Heverlee, Belgium\\
+E-mail: \{achiel.colpaert, evgenii.vinogradov, sofie.pollin\}@kuleuven.be} michael.raes@student.kuleuven.be}
+
+\maketitle
+
+\begin{abstract}
+%\ac{rewrite abstract}The advance Unmanned Aerial Vehicles (UAVs), also known as drones, is unstoppable these days, especially now \ac{commercially available wording}. They are also being used professionally in many different sectors for increasingly innovative applications, ranging from inspection and security to local package delivery. However, when moving to beyond visual line of sight (BVLOS) applications, the drone must be assured of a stable and reliable communication link with the operator or with an Unmanned Traffic System in the case of fully autonomous applications. The existing cellular mobile network is a good candidate because of its very widespread coverage. However, research has indicated that existing cellular networks, which are built and optimised for ground users, show very different behaviour in aerial applications. Various works proposed already a range of possible solutions however these mostly require modifying or adding infrastructure or require very complex path planning. Very little work has been done in practical mobile scenarios and this is where this work will make an effort to shine some light\ac{this needs to change}. This work investigates whether a simple solution can be found in connecting to multiple mobile networks simultaneously. Propagation simulations based on real-world mobile network deployment data are the basis for looking at different aspects of network quality. The results confirm the application of network diversity can significantly improve coverage in urban areas and reduce the size of the outage zones. In addition, a hypothetical network applying sidelobe boosting is considered, which can result in an even greater improvement between certain heights. Finally, it is shown that the number of handovers and radio link failures is dramatically reduced when two networks are combined.
+The market size of Unmanned Aerial Vehicles (UAVs, a.k.a drones) can reach up to 10\% of the global market value. In particular, drone delivery is one of the most attractive applications. The growing number of drones requires appropriate traffic management systems that will rely on cellular networks. However, it has been shown in the literature that these networks cannot provide reliable communication due to low coverage probability and frequent handovers. This article presents a potential solution targeting these problems while requiring no modifications of the existing infrastructure. Namely, equipping the UAV with multiple cellular modems to connect to different providers' networks introduces network diversity resulting in 98\% coverage probability at the flight altitude of 100 meters. In contrast, one network ensures only 80\% coverage. At the same time, the size of the outage zones becomes up to ten times smaller and the frequency of harmful handovers is reduced to zero. The results are obtained with a physical-layer simulator utilizing a real urban 3D environment, cellular network parameters (e.g., site locations, antenna orientation and gains), and specific aerial channel models.
+\end{abstract}
+
+\begin{IEEEkeywords}
+UAV, UTM, Urban Air Mobility, Reliability, Cellular networks
+\end{IEEEkeywords}
+
+\section{Introduction}
+\input{intro}
+% \subsection{Background}
+% \par First sentence, drones are cool.\sofie{maybe remove that first sentence?} Drones are deployed for a large variety of applications, ranging from inspection of buildings\cite{elia2021drone}, to precision agriculture, to aerial basestations or relays \cite{azari2021evolution}, to maybe the most appealing, drone deliveries. Where a UAV will fly from a central depot straight to your doorstep to deliver a package, not prone to any traffic and simultaneously reducing traffic. Especially in large cities where traffic is a problem and the distance to travel is relatively small, drone delivery could be a real improvement to quality of life in big cities. It is predicted that by 2025, the drone services market will be worth a total of USD 63.6 billion \cite{business2021drone} and the UAV fleet, both recreational and commercial, is projected to reach 2 to 3 million by 2023 \cite{faa2019prediction}. One of the main concerns in UAV operation is the safety of operation which can only be guaranteed by a reliable system. In this context Unmanned Traffic Management (UTM) platforms are being developed to increase safety for everyone using the airspace \cite{faa2021unmanned}. Cellular networks are an ideal candidate as they provide ubiquitous coverage and remove the need for the operator to deploy expensive wireless infrastructure. 3GPP has taken the first steps to introduce aerial vehicles some time ago now \cite{3gpp2018enhanced}, but many questions remain open.
+
+% \subsection{State of the Art}
+% \par In an effort to evaluate the performance of UAVs in cellular networks many different types of studies have been performed, from analysis to simulator based, to actual experimental work. Azari et al. \cite{azari2019cellular} provides an in-depth analysis of the performance of UAVs in a cellular network based on stochastic geometry \cite{azari2019cellular}. Authors of \cite{rodriguez2021air} characterized the channel of low altitude UAVs through a dedicated measurement campaign. Both works conclude that the antenna configuration at the basestation should be considered when introducing aerial users to a cellular network as the antennas are pointed towards the ground generally. Other simulation based research has proven that current LTE networks do not provide sufficient coverage at altitudes above building height, mainly due to interference problems \cite{colpaert2018aerial} and high handover rates \cite{colpaert2020beamforming}. A measurement campaign in \cite{mohammed2021exhaustive} showed promising results both in terms of coverage and handover rates, however it was performed in a rural area where the basestation density is much lower compared to an urban scenario. 
+% \subsection{Hypothesis}
+% \par The problem of achieving high reliability \sofie{highly reliable?} UAV networks in an urban environment remains an open problem. A high density of basestations results in high signal strengths but simultaneously high interference levels due to line-of-sight conditions. However, network infrastructure from different telecom providers are deployed at different basestation sites in the city \sofie{is there not a lot of site sharing?}. We hypothesize that by equipping the UAV with multiple LTE modems to connect to different provider's networks we can introduce network diversity to improve both the coverage and handover rates for UAVs.
+% \par Another aspect influencing the aerial cover are the basestation antennas as \cite{azari2019cellular,rodriguez2021air} have shown, they point mainly at the downward tilt of the antennas \sofie{strange sentence?}. However, we theorize that the effect of antenna sidelobe suppression, a feature implemented in many directive cellular antennas, is not to be underestimated and reducing this feature could already improve the coverage situation for UAVs.
+% \par By introducing these solutions in the current and upcoming cellular networks we can increase the reliability and safety of drone delivery and other services. 
+% \subsection{Contributions}
+% \par The contributions of this work are as follows \ac{draft}:
+% \begin{enumerate}
+%     \item Simulations in a realistic scenario to estimate actual performance of the system
+%     \item Coverage and how it will be improved through macro network diversity
+%     \item Show effect of sidelobe suppression on coverage
+%     \item Handovers and how they can be improved through Macro network Diversity
+% \end{enumerate}
+
+
+% \section{section title}
+% \par To be able to simulate the received powers, the physical layer simulator developed in \cite{} is used. Once the received power for all sectors is known, one can determine the cell allocation and SINR from this. \ac{requirements for simulation}
+% \par Firstly there's a need for terrain and surface information, as this will influence the heights of the antennas and, more importantly, allow us to determine if a sector is in LOS with a point. For this, the DHMV-dataset \cite{} is used and \ac{can be seen in Figure ...}
+% \par Secondly, information about the location of the different basestations, their sectors, tilts, transmit powers and antennas needs to be known. For this, a custom \ac{python} script was developed that combines information from the Antenna Registry of the BIPT \cite{}, with the database of \textit{declarations of conformity} issued by operators for each antenna site. These declaration documents contain all necessary information and are parsed to extract the data to a JSON file as input for the simulations.
+% \par Thirdly an antenna pattern was simulated that corresponds an antenna that is used on cellular basestation sites in the evaluated area \cite{}. Important to note is that just like the actualla anteann, this simulated sector antenna has sidelobe suppression, which improves power efficiency for serving ground users by reducing energy emitted towards the sky.
+% \par Finally, the channel model for aerial vehicles defined by 3GPP in \cite{} is used.
+% \par Using this input and the general parameters defined in \ac{table I}, the simulator can evaluate the channel model for 3D point in the simulation area, and as such can calculate the received power from each sector.
+\section{Model}
+\label{sec:model}
+
+\par To model the scenario of drone deliveries, we consider drones flying in an urban environment at a fixed speed. They travel at constant altitudes ranging from just above rooftop level up to a maximum of 300~m above ground level. They fly in a straight line starting at a random point $A$ in the city to another random point $B$ representing the delivery address. The requirements for a network supporting these drones are twofold. On one side, only a low throughput link is necessary to monitor and control the UAV from a remote location. The requirement for this is a minimum Signal-to-Noise-Ratio (SINR). On the other hand, the link needs to be very reliable. Due to safety concerns, one cannot afford to lose connection to the UAV. The amount of handovers (HO) between sectors and radio link failures (RLF) will affect the time that the UAV is not connected to the network.
+\par For the location of our study, we choose the city of Leuven as the environment as this is the location of our university, and this allows us to verify our results even further in the future.
+\par We will evaluate the performance of the network using several metrics based on the SINR which is calculated at any 3D point $\vec{p}$ in the simulator as follows: \begin{equation}
+	\label{eq:sinr_interference_noise}
+	SINR (\vec{p}) = \frac{P_r(\vec{p},a)}{\sum^{A}_{i \neq a} P_{r, i}(\vec{p}) + N},
+\end{equation}
+where $A$ represents the set of all sectors in the environment and $a$ represents the currently assigned sector, $N$ represents the noise power and is calculated as follows $N = BN_0F$, where $B$ is the bandwidth, $N_0$ is the noise density and $F$ is the noise figure. 
+\par The metrics considered are the following: the first being coverage probability $P_{cov}$ calculated as the ratio of the area where the Signal-to-Interference-and-Noise-Ratio (SINR) is larger than a threshold (T) based on throughput requirements, $SINR > T$, divided by the total area. The second metric is the size of the largest continuous zone where no coverage exists in square kilometers, called the maximum outage zone $OUT_{max}$. This metric represents the importance of continuous coverage, large regions of outage results in the UAV being disconnected for long periods of time which is detrimental in a reliable network.
+
+\section{Simulations}
+\par To simulate the received powers at any 3D point, an improved version of the physical layer simulator developed in \cite{colpaert2018aerial, colpaert2020beamforming} is used. It uses a real 3D environment based on surface scans to create a virtual environment where assets like base stations and users can be deployed in a 3D space. The modified version includes realistic cellular network configurations as we detail in the following subsection.
+\subsection{Environment}
+The simulator requires several parameters based on the real world environment as input. First of all, terrain and surface information is required, as this affects the heights of the antennas and, more importantly, allows us to determine if a sector is in line of sight with a point. For this, the DHMV-dataset, see \cite{colpaert2018aerial}, is used and the considered environment is displayed in Fig.~\ref{fig:leuven_dsm_sectors}.
+
+\begin{figure}
+	\centering
+    \includegraphics[scale=0.6]{img/leuven/env.pdf}
+    % \input{img/leuven/env}
+	\caption{Digital Surface Model with sectors and simulation area indicated in red. The lines represent the sectors and their azimuth rotation and each color represents a different network.}
+	\label{fig:leuven_dsm_sectors}
+\end{figure}
+
+\par Secondly, information about the location of the different base stations, their sectors, tilts, transmit powers and antennas needs to be known. For this, information from the Belgian Antenna Registry of the BIPT \cite{bipt-ant}, the organisation managing the spectrum in this environment, is combined with the database of \emph{declarations of conformity} issued by operators for each antenna site. These declaration documents contain all information about the hardware deployed at each antenna site and are used as input for the simulator.
+
+\par Thirdly, we used a 3D antenna pattern  corresponding to the antennas used on the sites in the evaluated area \cite{huaweiantenna}. It is important to note that just like the real antenna, this antenna pattern has sidelobe suppression implemented meaning that the actual gain of the sidelobes is further reduces to improve power efficiency by reducing energy emitted towards the sky. %Later in this study we will evaluate the effect of this sidelobe suppression on the performance of the network for aerial vehicles. Sidelobe suppression is implemented as a relative gain reduction of the sidelobes compared to the maximum gain of the main lobe.
+
+\par Lastly, the used channel model is defined in \cite{3gpp2018enhanced} specifically for aerial vehicles.
+
+\subsection{Scenarios}
+\par Two different scenarios are simulated. One static scenario where all points on the map are evaluated at different altitudes, generating statistics of the area at different heights. Secondly, a mobile scenario is evaluated where a UAV travels a random path over the city populated by static ground users. In this scenario, we can evaluate handover behaviour and Radio-Link-Failure (RLF) occurrences of the network.
+
+\subsubsection{Static scenario}
+
+\par The first scenario's goal is to evaluate the statistics of the chosen city of Leuven and characterize the cellular network at different altitudes above ground level to give us some insight on how well a UAV can utilize the cellular network. Using the info of the environment and the general parameters used in a typical LTE deployment, see Table \ref{tab:general_simparams}, the simulator evaluates the channel model for every 3D point in the simulation area, and as such can calculate the received power from each sector at each 3D point. This happens for three different network operators (Op1, Op2 \& Op3). The base station sites of these operators can coincide. The received power from all sectors can be used to determine cell allocation and SINR levels. SINR levels can then be further used to calculate coverage.
+
+\par This characterization of the environment is performed for different operators. After combining all data, we can calculate the SINR at any point in a multi-operator network, as in \cite{nguyen2017using}:
+\begin{equation}
+	\label{eq:sinr_max}
+	SINR (\vec{p}) = \max\limits_{k}\Bigg(\frac{P_r(\vec{p},a)}{\sum^{A}_{i_k \neq a} P_{r, i_k}(\vec{p}) + N}\Bigg),
+\end{equation}
+where $k$ is the operator index. These SINR values can then be used to calculate the coverage as described in Section \ref{sec:model}. Using all the datapoints at a specific altitude we can also evaluate the area size of continuous outage zones and we can calculate the largest outage zone, $OUT_{max}$.
+
+%\par By swapping out the used antenna patterns in this scenario, we can evaluate the effect of the sidelobe suppression. By inserting antenna patterns without sidelobe suppression and even with sidelobe boosting, we can easily see if it results in an improvement as we hypothesize.
+
+\begin{table}[h!]
+	\begin{center}
+	  \caption{Simulation Parameters}
+	  \label{tab:general_simparams}
+	  \begin{tabular}{|l|c|} % <-- Alignments: 1st column left, 2nd middle and 3rd right, with vertical lines in between
+		\hline
+		\textbf{Parameter} & \textbf{Value}\\
+		\hline
+		Simulation area, & $9~km^2$\\
+		Resolution, & $5~m$\\
+		Carrier frequency, $f_c$& $1800~MHz$\\
+		Bandwidth, $B$ & $20~MHz$\\
+		Outage-threshold, $T$ & $-6~dB$\\
+		Noise density, $N_0$ \cite{3gppRadioFrequencyRF2018} & $-174~dBm/Hz$\\
+		Noise number, $F$ \cite{3gppRadioFrequencyRF2018} & $9~dB$\\
+		\hline
+
+	  \end{tabular}
+	\end{center}
+  \end{table}
+  
+\subsubsection{Mobile scenario}
+
+\par Finally a second scenario is simulated to get more insight into the mobility characteristics of a multi-network approach. In \cite{colpaert2020beamforming}, the simulator was extended with the possibility to consider a moving drone that travels over a certain trajectory in three dimensional space and can hence experience changing network circumstances. They also implemented a simplified handover mechanism based on the \verb+A3+-event from the 4G- and 5G standards \cite{3gpp2021NR}.
+
+\par Alongside the handover event, there exists another event that could cause temporary disconnection and latency issues, the
+RLF event. When the UE detects problems in the connection it will wait for a specific timer (\verb+T310+ \cite{3gpp2021NR}) to run out and when the problem is not resolved at that time the UE will consider itself in RLF and begin the cell selection procedure again. The handover threshold and the RLF timer are network parameters that the operator can tweak on a per-UE basis. Because we want very low latency for drone applications, the following simulation uses a \verb+T310+ of $200~ms$. For the A3-threshold we take $-2~dB$ as in \cite{3gpp2018enhanced}.
+
+\par In a multi-network context the definitions are slightly different. First, a RLF is defined as an event when the user is not connected to any network. Secondly, a handover is defined as:
+\begin{itemize}
+	\item One of the used networks has a HO and the other used networks are in RLF at that time;
+	\item All used networks experience a handover within 1 second.
+\end{itemize}
+This period of $1~s$ is self-defined and is a measure for how robust one wants to protect the combined link against near simultaneous handovers. A longer period gives more margin, a shorter period assumes that the handover is correctly resolved when the other network starts a handover. The remainder of the simulation parameters can be found in Table \ref{tab:leuven_ho_stats}, refer to \cite{colpaert2020beamforming} for the full explanation of all the parameters.
+
+\begin{table}[h!]
+	\begin{center}
+	  \caption{Handover Simulation Parameters}
+	  \label{tab:leuven_ho_stats}
+	  \begin{tabular}{|l|c|} % <-- Alignments: 1st column left, 2nd middle and 3rd right, with vertical lines in between
+		\hline
+		\textbf{Parameter} & \textbf{Value}\\
+		\hline
+		Heights (AGL) $h$  & $20$~m, $40$~m, $80$~m, $160$~m\\
+		Drone velocity $v$  & $15~m/s$\\
+		Outage-threshold $T$ & $-6~dB$\\
+		A3 - Offset $T_{A3}$ & $2~dB$\\
+		RLF-timer \verb+T310+ & $200~ms$\\
+		Simulation timestep $\delta_t$ & $100~ms$\\
+		Number simulations & $5000$ \\
+		\hline
+
+	  \end{tabular}
+	\end{center}
+  \end{table}
+
+\section{Results}
+
+\par In this section, we look at the results generated by the simulations described above. We evaluate the metrics at different altitudes to get a better insight into the effect of drone height. We also draw the evaluations under different network loads, but we focus on the $100~\%$ network load as this is the worst-case scenario but the most important scenario when looking at the reliability of the communication link.
+\par First, we evaluate the coverage situation, followed by a study of the effects of using multiple operators. % and of the sidelobe suppression at the antennas. 
+Next, we evaluate the handover results and verify whether using multiple networks results in an improvement in terms of handovers.
+
+\subsection{Coverage}
+\begin{figure}[]
+    \centering % <-- added
+	 \resizebox{0.9\linewidth}{!}{
+    \input{img/SINR/SINR_CDF-pxs}
+    }
+    \caption{CDF of the SINR of Operator 1 at different heights for a half or full network load. The vertical red line represent the coverage threshold. SINR levels below this threshold are considered as network outage. A network at half load has almost 100\% coverage up to an altitude of $160~m$.}
+    \label{fig:leuven_sinr}
+\end{figure}
+\par The resulting statistics of the SINR for Operator 1 can be seen in Fig. \ref{fig:leuven_sinr} where the CDF of the SINR for different altitudes and loads is shown. To meet the requirements for downlink communications, UAVs must have a minimum SINR of $-6~dB$ \cite{colpaert2018aerial} for a command-and-control link. This is the coverage threshold $T$, below which the drone experiences a SINR that is too low to achieve successful communication. This is indicated by a vertical red line.
+
+\par The figure shows that as the drone flies higher, we can see that the density function shifts to the left, indicating that SINR values drop. One can also see that the curve becomes steeper indicating that the variance keeps decreasing with height: a very wide distribution at $20~m$ becomes much more concentrated at $160~m$.
+
+\par The effect of choosing a different outage threshold can be seen in Fig.~\ref{fig:leuven_cov_vs_threshold}, using the suggested threshold of $-6~dB$ results in a coverage probability of $0.74$ at an altitude of $160~m$. If a larger threshold is chosen the coverage probability drops drastically with $P_{cov}$ reaching zero at a threshold of $2~dB$ for an altitude of $160~m$. These results indicate the bad aerial coverage situation.
+
+\begin{figure}
+	\centering
+	 \resizebox{0.9\linewidth}{!}{
+	\input{img/thresholds/thresholds-pxs}
+	}
+	\caption{Impact of the outage threshold, $T$, on the coverage probability, $P_{cov}$ at different altitudes under a $50\%$ or a $100\%$ network load.}
+	\label{fig:leuven_cov_vs_threshold}
+\end{figure}
+
+%\subsubsection{Multi-Operator}
+\par In an effort to solve this coverage problem, we consider a connection with multiple networks at the same time. The SINR values in this network are calculated using \eqref{eq:sinr_max}.
+The coverage probability as a function of the drone altitude can be seen in Fig. \ref{fig:leuven_multi_cov}. When using one network operator, the probability stays one up until around $20~m$ height as the network is designed this way. However, we can see the coverage drops as soon as the UAV flies above rooftop height. In a multi-operator network we can see that the 100\% coverage reaches a much higher altitude. At an altitude of $100~m$ the coverage probability in a multi-operator network is still 0.99. This altitude is much more likely to be used by a drone network. Above this altitude the coverage drops again, albeit less than with one operator. The increase in coverage probability from using two compared to using three operators is less but can be considered for ultra-reliable systems. %The slight increase in coverage probability around $100~m$ can be explained by the sidelobe suppression of the antennas.
+
+
+\begin{figure}[]
+    \centering % <-- added
+    % \begin{subfigure}{\linewidth}
+    %     \includegraphics[width=\linewidth]{img/leuven/multi_sinr_vs_h.pdf}
+    %     \caption{Average SINR}
+    %     \label{fig:leuven_multi_sinr}
+    % \end{subfigure}\hfil % <-- added
+    
+	\resizebox{0.9\linewidth}{!}{
+    \begin{subfigure}{\linewidth}
+        \input{img/multiop/multiop_cov-pxs}
+        \caption{Coverage probability $P_{cov}$}
+        \label{fig:leuven_multi_cov}
+    \end{subfigure}} % <-- added
+    \resizebox{0.9\linewidth}{!}{
+    \begin{subfigure} {\linewidth}
+        \input{img/multiop/multiop_outage-org}
+        \caption{Maximum outage zone $OUT_{max}$}
+        \label{fig:leuven_multi_outmax}
+    \end{subfigure} % <-- added
+    }
+    \caption{Impact of multi-operator diversity on the network performance. Using multiple cellular networks enables UAV connectivity at higher altitudes.}
+\end{figure}
+
+\par Fig. \ref{fig:leuven_multi_outmax} shows the $OUT_{max}$ as function of the altitude. Using a single operator results in relatively large outage zones, especially at altitudes above $100~m$. In a multi-operator scenario the size of the outage zones stays relatively small even at very large altitudes. A single operator network experiences much larger continuous outage zones than a two or three operator network. This can be explained by the fact that many of the antenna sites are different for the selection operators and even if they utilize the same antenna site they often deploy their sectors with different infrastructure, resulting in different azimuths, tilts, etc. 
+
+
+
+\subsection{Handovers}
+\par The assignment map indicates which sector has the highest received power at each point. In Fig. \ref{fig:leuven_assmap} the assignment map of two operators at different altitudes is shown. Each color represents a sector, meaning that the color of a pixel determines which sector a user is assigned to at this location. One can observe that at $120~m$ height the assignment pattern is much more fragmented than the one at $20~m$ height. Due to the antenna sidelobes and nulls, UAVs at high altitudes will connect to sectors that are not necessarily the closest or they will alternate rapidly between multiple sectors. This will lead to higher handover frequency. These handovers result in throughput drops, where at these altitudes throughput is already a scarce resource. To build a reliable UAV communications network, reducing the number of handovers and Radio-Link-Failures is in the best of interest. 
+\begin{figure}
+	\centering
+    \begin{subfigure}[b]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/leuven/ass-pxs-20m.pdf}
+        \caption{Operator 1, $20~m$}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/leuven/ass-pxs-120m.pdf}
+        \caption{Operator 1, $120~m$}
+    \end{subfigure}
+    \vfill
+	\begin{subfigure}[b]{0.49\linewidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/leuven/ass-tnt-20m.pdf}
+        \caption{Operator 2, $20~m$}
+    \end{subfigure}
+    \hfill
+	\begin{subfigure}[b]{0.49\linewidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/leuven/ass-tnt-120m.pdf}
+        \caption{Operator 2, $120~m$}
+    \end{subfigure}
+	    \caption{Sector assignment map for two network operators at $20~m$ and $120~m$ height. Each color represents a different sector. The color of a pixel indicates which sector a user at this location is assigned to.}
+     \label{fig:leuven_assmap}
+\end{figure}
+%\subsubsection{Multi-operator}
+Fig. \ref{fig:leuven_assmap} also shows the difference in assignment patterns between two different operators. We can utilize this diversity to create a multi-operator network where when a handover needs to happen or when a RLF occurs, the user can always fall back on the other operator's network.
+
+%\par As in this scenario when a handover from one sector to another is required or a RLF is experienced in a specific operator's network, there is a low probability that this will not be the case in another operator's network at exactly the same time and or location. Therefore, being connected to multiple operator's networks at the same time will reduce handover and RLF rates.
+
+\par The results can be neatly observed in the Fig. \ref{fig:handovers_results}. Fig. \ref{fig:handovers_time} shows the  handover frequency experienced by a drone flying at certain altitudes. When looking at a single operator system, we can see that a drone flying at an altitude of $160~m$ experiences a median of five handovers, this is a handover every 12 seconds. It is clear that this will cause significant problems for the command and control link. In contrast, the multi operator systems experience approximately zero handovers at the same altitude, due to the network diversity.
+\par The same positive effect can be seen when monitoring the RLF duration. Fig. \ref{fig:rlf_dur} shows the duration a drone will not be connected to the network when it encounters a RLF. At an altitude of $160~m$ a drone using a single network will have a median disconnection time of $4~s$ when encountering a no-coverage zone. This is clearly not a desired situation. However, a drone connecting to multiple networks simultaneously can bring down this duration to a median of $1~s$. This shows the clear benefits for drones of connecting to multiple cellular networks at the same time.
+%\par It is clear that a UAV can greatly reduce the number of problematic handovers by connecting to multiple cellular networks simultaneously, while also reducing the time spent disconnected from the network due to RLF.
+
+
+\label{sec:handovers}
+\begin{figure}[]
+    \centering % <-- added
+    
+    \resizebox{0.825\linewidth}{!}{
+    \begin{subfigure}{0.9\linewidth}
+        % \includegraphics[width=\linewidth]{img/handovers/box_outage.pdf}
+        \input{img/handovers/box_ho_min}
+        \caption{Number of handovers per minute}
+        \label{fig:handovers_time}
+    \end{subfigure} % <-- added
+    }
+    \resizebox{0.825\linewidth}{!}{
+    \begin{subfigure}{0.9\linewidth}
+        \input{img/handovers/box_rlf_dur}
+        \caption{Radio Link Failure duration}
+        \label{fig:rlf_dur}
+    \end{subfigure} % <-- added
+    }
+    \caption{Impact of multi-operator diversity on the number of handovers and on the time spent disconnected due to RLF.}
+	\label{fig:handovers_results}
+\end{figure}
+
+
+% \begin{figure}[]
+%     \centering % <-- added
+%     \begin{subfigure}{0.4\linewidth}
+%         \includegraphics[width=\linewidth]{img/antenna_noboost.pdf}
+%         \caption{Without sidelobe suppression}
+%         \label{fig:ant_noboosting}
+%     \end{subfigure}\hfil % <-- added
+%     \begin{subfigure}{0.4\linewidth}
+%         \includegraphics[width=\linewidth]{img/antenna_boost.pdf}
+%         \caption{With sidelobe boosting}
+%         \label{fig:ant_boosting}
+%     \end{subfigure}\hfil % <-- added
+%     \caption{Aangepaste antennepatronen}
+% 	\label{fig:andere_antennepatronen}
+% \end{figure}
+
+
+
+
+
+
+
+
+
+% The following statement makes the two columns on the last page more
+% or less of equal length.  Placement of this command is by trial and error.
+
+
+\section{Conclusion}
+\par In this article an application of multi-operator network diversity has been explored to improve the network conditions for UAVs in deployed mobile networks. The results indicate that the increase in performance is indeed significant: the coverage can be improved by 20\% even in the worst case scenario of full network load, while the size of the outage zones is up to ten times smaller, particularly for high altitudes, than for the separate networks, meaning that the drone will have less chance to be unreachable for a long time due to bad network conditions.
+The mobility characteristics can also be improved, the possible disconnection events can be reduced significantly, resulting in
+a better overall latency for the combined connection. %Besides that a hypothetical network with sidelobe boosting was considered to evaluate the impact. We can conclude that it can indeed be a major contributor to better signal conditions, but only in a limited slice of the airspace, above and below this slice the improvement is not noticeable and network diversity has better results.
+
+% \subsection{Suggestions for further work}
+% In subsequent work it could be investigated if the slight increase in SINR (and as a result the coverage $P_{cov}$) with increasing height is a phenomenon that
+% also exists in reality or is somehow a simulator artifact.
+
+% Besides that it has become clear that \emph{sidelobes} and their position in space, defined by tilts and the locations of the sector antennas, have a major impact
+% on the coverage characteristics. A further study of the dependencies and linked factors in this context could offer insights to further improve the network conditions for drones.
+
+% Furthermore one can also look at combinations of network diversity with one of the myriad of other solutions for
+% the interference problem that have been proposed in literature. By reducing the size of the average outage zone, a path optimization algorithm as in \cite{challitaInterferenceManagementCellularConnected2019} would have
+% some more degrees of freedom to really plan a trajectory that is totally devoid of any outages.
+% \vfil\eject
+
+% optional entry into table of contents (if used)
+%\addcontentsline{toc}{section}{Acknowledgment}
+
+
+% trigger a \newpage just before the given reference
+% number - used to balance the columns on the last page
+% adjust value as needed - may need to be readjusted if
+% the document is modified later
+%\IEEEtriggeratref{8}
+% The "triggered" command can be changed if desired:
+%\IEEEtriggercmd{\enlargethispage{-5in}}
+
+% references section
+% NOTE: BibTeX documentation can be easily obtained at:
+% http://www.ctan.org/tex-archive/biblio/bibtex/contrib/doc/
+
+% can use a bibliography generated by BibTeX as a .bbl file
+% standard IEEE bibliography style from:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/supported/IEEEtran/bibtex
+%\bibliographystyle{IEEEtran.bst}
+% argument is your BibTeX string definitions and bibliography database(s)
+%\bibliography{referenties.bib}
+\bibliographystyle{IEEEtran}
+\bibliography{new_references}
+%
+\end{document}

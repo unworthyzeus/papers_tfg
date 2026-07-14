@@ -1,0 +1,618 @@
+%% -----------------------------------------------------------------------
+%% Bibliography for TFG: Channel Knowledge Map Prediction with Deep
+%% Learning for 6G UAV-Enabled Networks
+%% Author: Guillem Moreno Garcia
+%% -----------------------------------------------------------------------
+
+%%% WIRELESS PROPAGATION — TEXTBOOKS AND STANDARDS
+
+@book{rappaport,
+  author    = {Theodore S. Rappaport},
+  title     = {Wireless Communications: Principles and Practice},
+  edition   = {2},
+  publisher = {Prentice Hall},
+  year      = {2002},
+  url       = {https://www.pearson.com/en-us/subject-catalog/p/wireless-communications-principles-and-practice/P200000003199},
+}
+
+@techreport{cost231,
+  author      = {{COST Action 231}},
+  title       = {Digital Mobile Radio Towards Future Generation Systems: Final Report},
+  institution = {Office for Official Publications of the European Communities},
+  address     = {Luxembourg},
+  year        = {1999},
+  url         = {https://op.europa.eu/en/publication-detail/-/publication/f2f42003-4028-4496-af95-beaa38fd475f},
+}
+
+@article{walfisch1988,
+  author  = {J. Walfisch and H. L. Bertoni},
+  title   = {A Theoretical Model of {UHF} Propagation in Urban Environments},
+  journal = {IEEE Transactions on Antennas and Propagation},
+  year    = {1988},
+  volume  = {36},
+  number  = {12},
+  pages   = {1788--1796},
+  doi     = {10.1109/8.14401},
+}
+
+@article{ikegami1984,
+  author  = {F. Ikegami and S. Yoshida and T. Takeuchi and M. Umehira},
+  title   = {Propagation Factors Controlling Mean Field Strength on Urban Streets},
+  journal = {IEEE Transactions on Antennas and Propagation},
+  year    = {1984},
+  volume  = {32},
+  number  = {8},
+  pages   = {822--829},
+  doi     = {10.1109/TAP.1984.1143419},
+}
+
+@techreport{tr38901,
+  author      = {{3GPP}},
+  title       = {Study on Channel Model for Frequencies from 0.5 to 100 {GHz}},
+  institution = {3rd Generation Partnership Project},
+  number      = {TR 38.901},
+  year        = {2026},
+  note        = {Specification archive, accessed 15 May 2026},
+  url         = {https://www.3gpp.org/ftp/Specs/archive/38_series/38.901/},
+}
+
+@article{khawaja_survey,
+  author  = {W. Khawaja and I. Guvenc and D. W. Matolak and U.-C. Fiebig and N. Schneckenberger},
+  title   = {A Survey of Air-to-Ground Propagation Channel Modeling for Unmanned Aerial Vehicles},
+  journal = {IEEE Communications Surveys \& Tutorials},
+  year    = {2019},
+  volume  = {21},
+  number  = {3},
+  pages   = {2361--2391},
+  doi     = {10.1109/COMST.2019.2915069},
+}
+
+@inproceedings{wocc2021,
+  author    = {Chia-Chuan Chiu and Ang-Hsun Tsai and Hsin-Piao Lin and Chao-Yang Lee and Li-Chun Wang},
+  title     = {Channel Modeling of Air-to-Ground Signal Measurement with Two-Ray Ground-Reflection Model for {UAV} Communication Systems},
+  booktitle = {2021 30th Wireless and Optical Communications Conference ({WOCC})},
+  year      = {2021},
+  pages     = {251--256},
+  doi       = {10.1109/WOCC53213.2021.9603250},
+}
+
+@article{alhourani2014,
+  author  = {A. Al-Hourani and S. Kandeepan and S. Lardner},
+  title   = {Optimal {LAP} Altitude for Maximum Coverage},
+  journal = {IEEE Wireless Communications Letters},
+  year    = {2014},
+  volume  = {3},
+  number  = {6},
+  pages   = {569--572},
+  doi     = {10.1109/LWC.2014.2342736},
+}
+
+@article{juang2021pathprofile,
+  author  = {Rong-Terng Juang},
+  title   = {Explainable Deep-Learning-Based Path Loss Prediction from Path Profiles in Urban Environments},
+  journal = {Applied Sciences},
+  year    = {2021},
+  volume  = {11},
+  number  = {15},
+  pages   = {6690},
+  doi     = {10.3390/app11156690},
+}
+
+@article{zengx2021ckm,
+  author  = {Yong Zeng and Xiaoli Xu},
+  title   = {Toward Environment-Aware {6G} Communications via Channel Knowledge Map},
+  journal = {IEEE Wireless Communications},
+  year    = {2021},
+  volume  = {28},
+  number  = {3},
+  pages   = {84--91},
+  doi     = {10.1109/MWC.001.2000327},
+}
+
+@article{ckmtutorial2024,
+  author  = {Yong Zeng and Junting Chen and Jie Xu and Di Wu and Xiaoli Xu and Shi Jin and Xiqi Gao and David Gesbert and Shuguang Cui and Rui Zhang},
+  title   = {A Tutorial on Environment-Aware Communications via Channel Knowledge Map for {6G}},
+  journal = {IEEE Communications Surveys \& Tutorials},
+  year    = {2024},
+  volume  = {26},
+  number  = {3},
+  pages   = {1478--1519},
+  doi     = {10.1109/COMST.2024.3364508},
+}
+
+@article{ckmdata2024,
+  author  = {Xiaoli Xu and Yong Zeng},
+  title   = {How Much Data Is Needed for Channel Knowledge Map Construction?},
+  journal = {IEEE Transactions on Wireless Communications},
+  year    = {2024},
+  volume  = {23},
+  number  = {10},
+  pages   = {13011--13021},
+  doi     = {10.1109/TWC.2024.3397964},
+}
+
+@misc{saboor2025height,
+  author       = {Abdul Saboor and Evgenii Vinogradov},
+  title        = {Millimeter-Wave {UAV} Channel Model with Height-Dependent Path Loss and Shadowing in Urban Scenarios},
+  year         = {2025},
+  howpublished = {arXiv:2511.10763},
+  doi          = {10.48550/arXiv.2511.10763},
+  url          = {https://arxiv.org/abs/2511.10763},
+}
+
+@inproceedings{vinogradov2026shadow,
+  author    = {Evgenii Vinogradov and Aymen Fakhreddine and Abdul Saboor and Sergi Abadal and Sofie Pollin},
+  title     = {Spatially Consistent Air-to-Ground Channel Modeling and Simulation via {3D} Shadow Projections},
+  booktitle = {2026 International Conference on Computing, Networking and Communications},
+  year      = {2026},
+  doi       = {10.1109/ICNC68183.2026.11416865},
+}
+
+%%% DATASETS AND CHALLENGES
+
+@inproceedings{icassp2023challenge,
+  author    = {\c{C}a\u{g}kan Yapar and Fabian Jaensch and Ron Levie and Gitta Kutyniok and Giuseppe Caire},
+  title     = {The First Pathloss Radio Map Prediction Challenge},
+  booktitle = {{ICASSP} 2023 - 2023 {IEEE} International Conference on Acoustics, Speech and Signal Processing ({ICASSP})},
+  year      = {2023},
+  pages     = {1--2},
+  doi       = {10.1109/ICASSP49357.2023.10433928},
+  url       = {https://doi.org/10.1109/ICASSP49357.2023.10433928},
+}
+
+@misc{dataset2212,
+  author       = {\c{C}. Yapar and R. Levie and G. Kutyniok and G. Caire},
+  title        = {Dataset of Pathloss and {ToA} Radio Maps With Localization Application},
+  year         = {2022},
+  howpublished = {{IEEE} DataPort dataset},
+  doi          = {10.21227/0GTX-6V30},
+  url          = {https://doi.org/10.21227/0GTX-6V30},
+}
+
+@misc{jaensch2024directiverme,
+  author       = {Fabian Jaensch and Giuseppe Caire and Beg{\"u}m Demir},
+  title        = {Radio Map Estimation: An Open Dataset with Directive Transmitter Antennas and Initial Experiments},
+  year         = {2024},
+  howpublished = {arXiv:2402.00878},
+  doi          = {10.48550/arXiv.2402.00878},
+  url          = {https://arxiv.org/abs/2402.00878},
+}
+
+@article{ckmimagenet2025,
+  author  = {Zijian Wu and Di Wu and Shen Fu and Yuelong Qiu and Yong Zeng},
+  title   = {{CKMImageNet}: A Dataset for {AI}-Based Channel Knowledge Map Toward Environment-Aware Communication and Sensing},
+  journal = {IEEE Transactions on Communications},
+  year    = {2025},
+  volume  = {73},
+  number  = {12},
+  pages   = {14430--14443},
+  doi     = {10.1109/TCOMM.2025.3615778},
+  url     = {https://doi.org/10.1109/TCOMM.2025.3615778},
+}
+
+@article{wang2023multitasksr,
+  author  = {Xiping Wang and Ke Guan and Danping He and Zhao Zhang and Haoyang Zhang and Jianwu Dou and Zhangdui Zhong},
+  title   = {Super-Resolution of Wireless Channel Characteristics: A Multitask Learning Model},
+  journal = {IEEE Transactions on Antennas and Propagation},
+  year    = {2023},
+  volume  = {71},
+  number  = {10},
+  pages   = {8197--8209},
+  doi     = {10.1109/TAP.2023.3305096},
+  url     = {https://doi.org/10.1109/TAP.2023.3305096},
+}
+
+@inproceedings{icassp2025indoor,
+  author    = {Stefanos Bakirtzis and \c{C}a\u{g}kan Yapar and Kehai Qiu and Ian Wassell and Jie Zhang},
+  title     = {The First Indoor Pathloss Radio Map Prediction Challenge},
+  booktitle = {{ICASSP} 2025 - 2025 {IEEE} International Conference on Acoustics, Speech and Signal Processing ({ICASSP})},
+  year      = {2025},
+  pages     = {1--2},
+  doi       = {10.1109/ICASSP49660.2025.10889381},
+  url       = {https://doi.org/10.1109/ICASSP49660.2025.10889381},
+}
+
+@online{indoor2025results,
+  author = {{ICASSP 2025 Indoor Radio Map Challenge}},
+  title  = {The First Indoor Pathloss Radio Map Prediction Challenge: Results},
+  year   = {2025},
+  url    = {https://indoorradiomapchallenge.github.io/results.html},
+}
+
+%%% DEEP LEARNING FOR RADIO MAPS — OUTDOOR
+
+@article{radiounet2020,
+  author  = {Ron Levie and \c{C}a\u{g}kan Yapar and Gitta Kutyniok and Giuseppe Caire},
+  title   = {{RadioUNet}: Fast Radio Map Estimation With Convolutional Neural Networks},
+  journal = {IEEE Transactions on Wireless Communications},
+  year    = {2021},
+  volume  = {20},
+  number  = {6},
+  pages   = {4001--4015},
+  doi     = {10.1109/TWC.2021.3054977},
+  url     = {https://arxiv.org/abs/1911.09002},
+}
+
+@misc{radiogunet2025,
+  author       = {Ziyue Yang and Feng Liu and Yifei Jin and Konstantinos Vandikas},
+  title        = {Group Equivariant Convolutional Networks for Pathloss Estimation},
+  year         = {2025},
+  howpublished = {arXiv:2511.17841},
+  doi          = {10.48550/arXiv.2511.17841},
+  url          = {https://arxiv.org/abs/2511.17841},
+}
+
+@inproceedings{pmnet2023,
+  author    = {Ju-Hyung Lee and Omer Gokalp Serbetci and Dheeraj Panneer Selvam and Andreas F. Molisch},
+  title     = {{PMNet}: Robust Pathloss Map Prediction via Supervised Learning},
+  booktitle = {Proc.\ IEEE Global Communications Conference ({GLOBECOM})},
+  year      = {2023},
+  doi       = {10.1109/GLOBECOM54140.2023.10437562},
+  url       = {https://arxiv.org/abs/2211.10527},
+}
+
+@inproceedings{pmnet_icassp2023,
+  author    = {Ju-Hyung Lee and Joohan Lee and Seon-Ho Lee and Andreas F. Molisch},
+  title     = {{PMNet}: Large-Scale Channel Prediction System for {ICASSP} 2023 First Pathloss Radio Map Prediction Challenge},
+  booktitle = {Proc.\ IEEE International Conference on Acoustics, Speech and Signal Processing ({ICASSP})},
+  year      = {2023},
+  pages     = {1--2},
+  doi       = {10.1109/ICASSP49357.2023.10095257},
+  url       = {https://doi.org/10.1109/ICASSP49357.2023.10095257},
+}
+
+@inproceedings{rmtransformer2025,
+  author    = {Yuxuan Li and Cheng Zhang and Wen Wang and Yongming Huang},
+  title     = {{RMTransformer}: Accurate Radio Map Construction and Coverage Prediction},
+  booktitle = {2025 {IEEE} 101st Vehicular Technology Conference ({VTC2025-Spring})},
+  year      = {2025},
+  pages     = {1--5},
+  doi       = {10.1109/VTC2025-Spring65109.2025.11174709},
+  url       = {https://doi.org/10.1109/VTC2025-Spring65109.2025.11174709},
+}
+
+@article{tarhouni2025,
+  author  = {Ferdaous Tarhouni and Muneer AlZubi and Mohamed-Slim Alouini},
+  title   = {Machine Learning-based Path Loss Prediction in Suburban Environment in the Sub-6 {GHz} Band},
+  journal = {IEEE Transactions on Vehicular Technology},
+  year    = {2025},
+  pages   = {1--11},
+  doi     = {10.1109/TVT.2025.3633604},
+  url     = {https://doi.org/10.1109/TVT.2025.3633604},
+}
+
+@article{gao2026,
+  author  = {Yuan Gao and Tao Wen and Wenjing Xie and Jianbo Du and Yong Zeng and Dusit Niyato and Shugong Xu},
+  title   = {Effective Outdoor Pathloss Prediction: A Multi-Layer Segmentation Approach With Weighting Map},
+  journal = {IEEE Transactions on Vehicular Technology},
+  year    = {2026},
+  pages   = {1--6},
+  doi     = {10.1109/TVT.2026.3658966},
+  url     = {https://doi.org/10.1109/TVT.2026.3658966},
+}
+
+@misc{airmap2025,
+  author       = {Ali Saeizadeh and Miead Tehrani-Moayyed and Davide Villa and J. Gordon Beattie Jr. and Pedram Johari and Stefano Basagni and Tommaso Melodia},
+  title        = {{AIRMap}: {AI}-Generated Radio Maps for Wireless Digital Twins},
+  year         = {2025},
+  howpublished = {arXiv:2511.05522},
+  doi          = {10.48550/arXiv.2511.05522},
+  url          = {https://arxiv.org/abs/2511.05522},
+}
+
+@article{pathfinder2025,
+  author  = {Zhijie Zhong and Zhiwen Yu and Pengyu Li and Jianming Lv and C. L. Philip Chen and Min Chen},
+  title   = {{PathFinder}: Advancing Path Loss Prediction for Single-to-Multi-Transmitter Scenario},
+  journal = {Pattern Recognition},
+  year    = {2026},
+  volume  = {179},
+  pages   = {113725},
+  doi     = {10.1016/j.patcog.2026.113725},
+  url     = {https://doi.org/10.1016/j.patcog.2026.113725},
+}
+
+%%% DEEP LEARNING FOR RADIO MAPS — INDOOR
+
+@inproceedings{sip2net2025,
+  author    = {Wenlihan Lu and Ziyi Lu and Jia Yan and Shijian Gao},
+  title     = {{SIP2Net}: Situational-Aware Indoor Pathloss-Map Prediction Network for Radio Map Generation},
+  booktitle = {{ICASSP} 2025 - 2025 {IEEE} International Conference on Acoustics, Speech and Signal Processing ({ICASSP})},
+  year      = {2025},
+  pages     = {1--2},
+  doi       = {10.1109/ICASSP49660.2025.10890319},
+}
+
+@inproceedings{ippnet2025,
+  author    = {Bin Feng and Meng Zheng and Wei Liang and Lei Zhang},
+  title     = {{IPP-Net}: A Generalizable Deep Neural Network Model for Indoor Pathloss Radio Map Prediction},
+  booktitle = {{ICASSP} 2025 - 2025 {IEEE} International Conference on Acoustics, Speech and Signal Processing ({ICASSP})},
+  year      = {2025},
+  pages     = {1--2},
+  doi       = {10.1109/ICASSP49660.2025.10890663},
+  url       = {https://arxiv.org/abs/2501.06414},
+}
+
+@inproceedings{transPathNet2025,
+  author    = {Xin Li and Ran Liu and Saihua Xu and Sirajudeen Gulam Razul and Chau Yuen},
+  title     = {{TransPathNet}: A Novel Two-Stage Framework for Indoor Radio Map Prediction},
+  booktitle = {{ICASSP} 2025 - 2025 {IEEE} International Conference on Acoustics, Speech and Signal Processing ({ICASSP})},
+  year      = {2025},
+  pages     = {1--2},
+  doi       = {10.1109/ICASSP49660.2025.10887939},
+  url       = {https://arxiv.org/abs/2501.16023},
+}
+
+%%% FOUNDATION MODELS AND LARGE-SCALE ARCHITECTURES
+
+@misc{wicopg2025,
+  author       = {Mingran Sun and Lu Bai and Ziwei Huang and Xuesong Cai and Xiang Cheng and Jianjun Wu},
+  title        = {{WiCo-PG}: Wireless Channel Foundation Model for Pathloss Map Generation via Synesthesia of Machines},
+  year         = {2025},
+  howpublished = {arXiv:2511.15030},
+  doi          = {10.48550/arXiv.2511.15030},
+  url          = {https://arxiv.org/abs/2511.15030},
+}
+
+@misc{fmrme2026,
+  author       = {Dong Yang and Yue Wang and Songyang Zhang and Yingshu Li and Zhipeng Cai and Zhi Tian},
+  title        = {{FM-RME}: Foundation Model Empowered Radio Map Estimation},
+  year         = {2026},
+  howpublished = {arXiv:2602.22231},
+  doi          = {10.48550/arXiv.2602.22231},
+  url          = {https://arxiv.org/abs/2602.22231},
+}
+
+@article{radiolam2025,
+  author  = {Zhiyuan Liu and Qingyu Liu and Shuhang Zhang and Hongliang Zhang and Lingyang Song},
+  title   = {A Fine-Grained {3D} Radio Map Construction Paradigm With Ultra-Low Sampling Rates by Large Generative Models},
+  journal = {IEEE Journal on Selected Areas in Communications},
+  year    = {2026},
+  volume  = {44},
+  pages   = {4397--4413},
+  doi     = {10.1109/JSAC.2026.3677149},
+  url     = {https://doi.org/10.1109/JSAC.2026.3677149},
+}
+
+%%% PHYSICS-INFORMED AND GEOMETRY-ASSISTED METHODS
+
+@inproceedings{reveal2025,
+  author    = {Mukaram Shahid and Kunal Das and Hadia Ushaq and Hongwei Zhang and Jiming Song and Daji Qiao and Sarath Babu and Yong Guan and Zhengyuan Zhu and Arsalan Ahmad},
+  title     = {{ReVeal}: A Physics-Informed Neural Network for High-Fidelity Radio Environment Mapping},
+  booktitle = {2025 {IEEE} International Symposium on Dynamic Spectrum Access Networks ({DySPAN})},
+  year      = {2025},
+  pages     = {1--10},
+  doi       = {10.1109/DYSPAN64764.2025.11115911},
+  url       = {https://doi.org/10.1109/DYSPAN64764.2025.11115911},
+}
+
+@article{geomDL2024,
+  author  = {Wangqian Chen and Junting Chen},
+  title   = {Diffraction and Scattering Aware Radio Map and Environment Reconstruction Using Geometry Model-Assisted Deep Learning},
+  journal = {IEEE Transactions on Wireless Communications},
+  year    = {2024},
+  volume  = {23},
+  number  = {12},
+  pages   = {19804--19819},
+  doi     = {10.1109/TWC.2024.3487225},
+  url     = {https://arxiv.org/abs/2403.00229},
+}
+
+@article{huang2025a2gtransformer,
+  author  = {Borui Huang and Zhichao Xin and Fan Yang and Yuyang Zhang and Yu Liu and Jie Huang and Ji Bian},
+  title   = {Transformer-Based Air-to-Ground mmWave Channel Characteristics Prediction for 6G UAV Communications},
+  journal = {Sensors},
+  volume  = {25},
+  number  = {12},
+  pages   = {3731},
+  year    = {2025},
+  doi     = {10.3390/s25123731},
+  url     = {https://www.mdpi.com/1424-8220/25/12/3731},
+}
+
+@article{yang2019a2gml,
+  author  = {Guanshu Yang and Yan Zhang and Zunwen He and Jinxiao Wen and Zijie Ji and Yue Li},
+  title   = {Machine-Learning-Based Prediction Methods for Path Loss and Delay Spread in Air-to-Ground Millimetre-Wave Channels},
+  journal = {IET Microwaves, Antennas \& Propagation},
+  year    = {2019},
+  volume  = {13},
+  number  = {8},
+  pages   = {1113--1121},
+  doi     = {10.1049/iet-map.2018.6187},
+  url     = {https://onlinelibrary.wiley.com/doi/10.1049/iet-map.2018.6187},
+}
+
+@article{mi2024pointcloud,
+  author  = {Hang Mi and Bo Ai and Ruisi He and Anuraag Bodi and Raied Caromi and Jian Wang and Jelena Senic and Camillo Gentile and Yang Miao},
+  title   = {Measurement-Based Prediction of mmWave Channel Parameters Using Deep Learning and Point Cloud},
+  journal = {IEEE Open Journal of Vehicular Technology},
+  year    = {2024},
+  volume  = {5},
+  pages   = {1059--1072},
+  doi     = {10.1109/OJVT.2024.3436857},
+  url     = {https://doi.org/10.1109/OJVT.2024.3436857},
+}
+
+%%% GENERATIVE AND STOCHASTIC METHODS
+
+@article{radiodiff2025,
+  author  = {Xiucheng Wang and Keda Tao and Nan Cheng and Zhisheng Yin and Zan Li and Yuan Zhang and Xuemin Shen},
+  title   = {{RadioDiff}: An Effective Generative Diffusion Model for Sampling-Free Dynamic Radio Map Construction},
+  journal = {IEEE Transactions on Cognitive Communications and Networking},
+  year    = {2025},
+  volume  = {11},
+  number  = {2},
+  pages   = {738--750},
+  doi     = {10.1109/TCCN.2024.3504489},
+  url     = {https://arxiv.org/abs/2408.08593},
+}
+
+@inproceedings{radiopit2025,
+  author    = {Zeyao Sun and Bohao Fan and Qingyu Liu and Shuhang Zhang and Lingyang Song},
+  title     = {{RadioPiT}: Radio Map Generation with Pixel Transformer Driven by Ultra-Sparse Real-World Data},
+  booktitle = {2025 30th Asia-Pacific Conference on Communications ({APCC})},
+  year      = {2025},
+  pages     = {1--6},
+  doi       = {10.23919/APCC64555.2025.11279807},
+  url       = {https://doi.org/10.23919/APCC64555.2025.11279807},
+}
+
+%%% TRAINING METHODS AND DEEP LEARNING FOUNDATIONS
+
+@inproceedings{isola2017pix2pix,
+  author    = {Phillip Isola and Jun-Yan Zhu and Tinghui Zhou and Alexei A. Efros},
+  title     = {Image-to-Image Translation with Conditional Adversarial Networks},
+  booktitle = {Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
+  year      = {2017},
+  pages     = {1125--1134},
+  url       = {https://arxiv.org/abs/1611.07004},
+}
+
+@inproceedings{kendall2017uncertainties,
+  author    = {Alex Kendall and Yarin Gal},
+  title     = {What Uncertainties Do We Need in {Bayesian} Deep Learning for Computer Vision?},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2017},
+  url       = {https://arxiv.org/abs/1703.04977},
+}
+
+@inproceedings{izmailov2018swa,
+  author    = {Pavel Izmailov and Dmitrii Podoprikhin and Timur Garipov and Andrew Gordon Wilson},
+  title     = {Averaging Weights Leads to Wider Optima and Better Generalization},
+  booktitle = {Proceedings of the 34th Conference on Uncertainty in Artificial Intelligence},
+  year      = {2018},
+  url       = {https://arxiv.org/abs/1803.05407},
+}
+
+@techreport{winner2,
+  author      = {P. Ky\"osti and others},
+  title       = {{WINNER II} Channel Models},
+  institution = {IST-4-027756 WINNER II Deliverable},
+  year        = {2007},
+  url         = {https://www.cept.org/files/8339/winner2%20-%20final%20report.pdf},
+}
+
+@article{cai2019,
+  author  = {Xuesong Cai and Jos{\'e} Rodr{\'i}guez-Pi{\~n}eiro and Xuefeng Yin and Nanxin Wang and Bo Ai and Gert Fr{\o}lund Pedersen and Antonio P{\'e}rez Yuste},
+  title   = {An Empirical Air-to-Ground Channel Model Based on Passive Measurements in {LTE}},
+  journal = {IEEE Transactions on Vehicular Technology},
+  year    = {2019},
+  volume  = {68},
+  number  = {2},
+  pages   = {1140--1154},
+  doi     = {10.1109/TVT.2018.2886961},
+  url     = {https://doi.org/10.1109/TVT.2018.2886961},
+}
+
+@inproceedings{izydorczyk2019,
+  author    = {T. Izydorczyk and F. M. L. Tavares and G. Berardinelli and M. Bucur and P. Mogensen},
+  title     = {Angular Distribution of Cellular Signals for {UAVs} in Urban and Rural Scenarios},
+  booktitle = {Proc. EuCAP},
+  year      = {2019},
+  url       = {https://ieeexplore.ieee.org/document/8739910},
+}
+
+@book{goldsmith,
+  author    = {Andrea Goldsmith},
+  title     = {Wireless Communications},
+  publisher = {Cambridge University Press},
+  year      = {2005},
+  doi       = {10.1017/CBO9780511841224},
+}
+
+@inproceedings{perez2018film,
+  author    = {Ethan Perez and Florian Strub and Harm de Vries and Vincent Dumoulin and Aaron Courville},
+  title     = {{FiLM}: Visual Reasoning with a General Conditioning Layer},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  year      = {2018},
+  doi       = {10.1609/aaai.v32i1.11671},
+  url       = {https://arxiv.org/abs/1709.07871},
+}
+
+@inproceedings{dhariwal2021diffusion,
+  author    = {Prafulla Dhariwal and Alexander Nichol},
+  title     = {Diffusion Models Beat {GANs} on Image Synthesis},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2021},
+  url       = {https://arxiv.org/abs/2105.05233},
+}
+
+@inproceedings{saleh2021probabilistic,
+  author    = {Taha Saleh and Dmitry Petrov and Olav Tirkkonen and Vilho R{\"a}is{\"a}nen},
+  title     = {Probabilistic Path Loss Predictors for mmWave Networks},
+  booktitle = {Proceedings of the IEEE 93rd Vehicular Technology Conference},
+  year      = {2021},
+  pages     = {1--6},
+  doi       = {10.1109/VTC2021-Spring51267.2021.9448967},
+  url       = {https://doi.org/10.1109/VTC2021-Spring51267.2021.9448967},
+}
+
+@inproceedings{garciamarti2020mixture,
+  author    = {Dolores Garcia Marti and Joan Palacios and Jes{\'u}s Omar Lacruz and Joerg Widmer},
+  title     = {A Mixture Density Channel Model for Deep Learning-Based Wireless Physical Layer Design},
+  booktitle = {Proceedings of the 23rd International ACM Conference on Modeling, Analysis and Simulation of Wireless and Mobile Systems},
+  year      = {2020},
+  pages     = {53--62},
+  publisher = {ACM},
+  doi       = {10.1145/3416010.3423229},
+  url       = {https://dspace.networks.imdea.org/handle/20.500.12761/886},
+}
+
+@inproceedings{lee2024timevarying,
+  author    = {Youngmin Lee and Xiaomin Ma and Andrew S. I. D. Lang},
+  title     = {Modeling of Time-varying Wireless Communication Channel with Fading and Shadowing},
+  booktitle = {2024 {IEEE} 100th Vehicular Technology Conference ({VTC2024-Fall})},
+  year      = {2024},
+  pages     = {1--6},
+  doi       = {10.1109/VTC2024-Fall63153.2024.10757531},
+  url       = {https://doi.org/10.1109/VTC2024-Fall63153.2024.10757531},
+}
+
+%%% PROJECT SOFTWARE AND REPRODUCIBILITY ARTIFACTS
+
+@IEEEtranBSTCTL{IEEEexample:BSTcontrol,
+  CTLdash_repeated_names = {no},
+}
+
+@misc{moreno2026ckmgenerator,
+  author       = {Moreno Garcia, Guillem},
+  title        = {{CKMGenerator}: Generator of Path Loss, Delay Spread and Angular Spread},
+  year         = {2026},
+  howpublished = {Public GitHub repository},
+  publisher    = {GitHub},
+  url          = {https://github.com/unworthyzeus/CKMGenerator},
+  urldate      = {2026-05-06},
+  note         = {Snapshot commit 8b6c5fd26c30},
+}
+
+@misc{moreno2026finalcode,
+  author       = {Moreno Garcia, Guillem},
+  title        = {{Final\_Code\_TFG}: Final Training and Evaluation Code},
+  year         = {2026},
+  howpublished = {Public GitHub repository},
+  publisher    = {GitHub},
+  url          = {https://github.com/unworthyzeus/Final_Code_TFG},
+  urldate      = {2026-05-06},
+  note         = {Snapshot commit 63d12a3d1a05},
+}
+
+@misc{moreno2026tfgprogress,
+  author       = {Moreno Garcia, Guillem},
+  title        = {{TFGAllProgress\_Tries\_and\_Attempts}: Development History and Experimental Attempts},
+  year         = {2026},
+  howpublished = {Public GitHub repository},
+  publisher    = {GitHub},
+  url          = {https://github.com/unworthyzeus/TFGAllProgress_Tries_and_Attempts},
+  urldate      = {2026-05-06},
+  note         = {Snapshot commit 7c13efd51708},
+}
+
+@misc{moreno2026tfgtext,
+  author       = {Moreno Garcia, Guillem},
+  title        = {{TFG\_ActualText\_LaTeX}: Thesis Source},
+  year         = {2026},
+  howpublished = {Public GitHub repository},
+  publisher    = {GitHub},
+  url          = {https://github.com/unworthyzeus/TFG_ActualText_LaTeX},
+  urldate      = {2026-05-06},
+  note         = {Snapshot tag final-thesis-2026-05-15},
+}

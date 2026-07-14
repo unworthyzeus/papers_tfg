@@ -1,0 +1,611 @@
+% !TeX program = pdflatex
+% !BIB program = bibtex
+\documentclass[10pt,conference]{IEEEtran}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{cite}
+\usepackage{graphicx}
+\usepackage{siunitx}
+\usepackage{tabularx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage{xurl}
+\usepackage[hidelinks]{hyperref}
+\urlstyle{same}
+\sisetup{detect-all=true}
+
+\title{Height-Aware Attenuation Priors for Dense UAV Channel Knowledge Maps}
+
+\author{\IEEEauthorblockN{Guillem Moreno Garcia, Evgenii Vinogradov, Sergi Abadal}
+\IEEEauthorblockA{Universitat Politecnica de Catalunya (UPC), Barcelona, Spain\\
+guillem.moreno.garcia@estudiantat.upc.edu}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Dense channel knowledge maps can replace repeated ray tracing in radio
+planning, but a useful surrogate must preserve the strong height, range, and
+visibility structure of air-to-ground attenuation. This paper presents a
+height-aware, auditable attenuation prior for dense unmanned aerial vehicle
+channel knowledge maps. A line-of-sight branch combines free-space loss with a
+coherent image-source two-ray term and training-only height/range calibration.
+A non-line-of-sight branch combines established urban and air-to-ground trends
+with local morphology descriptors, followed by regime-specific linear
+calibration. A geometric visibility mask selects the deployed prior. The
+evaluation uses a strict city holdout with 2590 maps from 14 unseen cities,
+each containing $513\times513$ receiver locations at \SI{7.125}{GHz}. The
+prior reaches \SI{1.9383}{dB} overall root mean square error, with
+\SI{1.7519}{dB} in line of sight and \SI{3.5143}{dB} in non-line of sight,
+while attaining a per-map spatial correlation of 0.9477. The result provides a
+strong, inspectable starting point for fast UAV radio-map generation and for
+later residual learning.
+\end{abstract}
+
+\begin{IEEEkeywords}
+air-to-ground channel, channel attenuation, channel knowledge map, path loss,
+radio map, unmanned aerial vehicle.
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+Channel knowledge maps (CKMs) organize location-dependent channel information
+so that planning and adaptation do not require a new measurement or ray-tracing
+query for every link \cite{zengx2021ckm,ckmtutorial2024}. The idea is especially
+relevant to unmanned aerial vehicle (UAV) networks, where transmitter height
+changes visibility, propagation distance, and the interaction with the urban
+skyline \cite{khawaja_survey,saboor2025height}. A dense CKM surrogate must
+therefore reproduce more than a plausible image: it must preserve radial
+attenuation structure, line-of-sight (LoS) and non-line-of-sight (NLoS)
+regimes, and their dependence on height.
+
+Data-driven radio-map methods can achieve accurate dense predictions
+\cite{pmnet2023}, but an unconstrained regressor may spend capacity recovering
+simple propagation structure and may hide a weak NLoS regime behind a global
+metric. Purely analytical models present the opposite problem. Free-space and
+two-ray models capture range and coherent reflection, while classical urban
+and air-to-ground (A2G) models describe broad blocked-link trends
+\cite{cost231,alhourani2014}. Their original coefficients and deployment
+domains, however, do not directly reproduce the high-resolution ray-traced CKM
+maps considered here.
+
+The state-of-the-art limitation addressed in this work is the absence of a
+single, inspectable attenuation anchor that combines these two views under a
+strict unseen-city protocol. The proposed prior keeps literature-derived
+propagation structure, but fits all CKM-specific coefficients using training
+cities only. LoS pixels use a coherent two-ray model with smooth height and
+radial calibration. NLoS pixels use a conservative urban/A2G envelope plus
+local morphology features. A geometric visibility mask combines both maps.
+
+The main contributions are:
+
+\begin{itemize}
+\item a height-aware LoS prior that preserves coherent radial rings instead of
+reducing the link to distance-only loss;
+\item a morphology-aware NLoS prior whose raw propagation estimate, local
+building descriptors, and fitted regime remain separately inspectable; and
+\item a leakage-resistant evaluation on 14 unseen cities, including overall,
+LoS/NLoS, height, and map-structure diagnostics.
+\end{itemize}
+
+Unlike a later multi-target residual model, this paper is deliberately limited
+to the attenuation prior. Delay spread, angular spread, and neural residual
+learning are outside its contribution.
+
+\subsection{Related Work and Positioning}
+
+CKMs describe location-indexed channel side information rather than a single
+link budget. Their uses include environment-aware scheduling, beam selection,
+and trajectory or deployment planning \cite{zengx2021ckm,ckmtutorial2024}.
+Dense attenuation-map prediction is commonly approached as image-to-image
+regression. RadioUNet, PMNet, and related challenge systems demonstrate the
+strength of convolutional encoder--decoder models when topology and sparse or
+simulated radio information are available \cite{radiounet2020,pmnet2023,
+pmnet_icassp2023,icassp2023challenge}. These methods motivate dense output,
+but their evaluation settings do not isolate a continuously varying elevated
+transmitter under a strict city holdout.
+
+Hybrid models address the complementary weakness of pure image regression:
+known propagation structure should not have to be rediscovered independently
+in every city. Free-space and coherent two-ray models explain the dominant
+range, height, and reflection structure of unobstructed links
+\cite{rappaport,goldsmith,wocc2021}. COST231/Hata and air-to-ground models
+provide coarse blocked-link and elevation trends \cite{cost231,
+alhourani2014,khawaja_survey}. However, their nominal coefficients and validity
+ranges cannot simply be transferred to a dense \SI{7.125}{GHz} ray-traced
+dataset. We therefore retain their functional structure as a prior and fit
+only compact calibration terms on training cities.
+
+This positioning differs from learning a correction to a single path-loss
+formula. The LoS branch explicitly preserves coherent rings, whereas the NLoS
+branch combines a conservative analytical scale with observed local
+morphology. It also differs from probabilistic LoS models: a deterministic
+visibility mask is available here and is used to route each receiver through
+the appropriate branch. The result is a fully dense attenuation estimate whose
+intermediate quantities remain accessible for diagnosis.
+
+\section{Data and Evaluation Contract}
+
+Each sample is a $513\times513$ urban CKM with \SI{1}{m} spatial resolution.
+One elevated transmitter is horizontally centered in the map, operates at
+\SI{7.125}{GHz}, and has a sample-dependent height
+$h_{\mathrm{tx}}\approx\SIrange{12}{478}{m}$. Every non-building pixel is a
+valid receiver at $h_{\mathrm{rx}}=\SI{1.5}{m}$; building pixels are excluded
+from the metric rather than counted as zero-error targets. The prediction
+target is the stored dense channel-attenuation map in decibels.
+
+The split is made by city rather than by pixel, tile, or random sample. The
+frozen attenuation artifact was calibrated on 11185 maps from 38 cities. A
+further 2405 maps from 14 disjoint cities form the development partition, and
+the final test set contains 2590 maps from 14 further cities. The calibration
+partition is the 37-city thesis training set plus Fortaleza; correspondingly,
+the development set is the thesis validation set without Fortaleza. No final
+test city occurs in either coefficient fitting or lookup-table construction.
+All reported claims use the final test partition after the fitted quantities
+have been frozen.
+
+For valid-receiver mask $m_i(p)$, prediction $\hat y_i(p)$, and target
+$y_i(p)$, the pixel-weighted test error is
+\begin{equation}
+\mathrm{RMSE}=\sqrt{
+\frac{\sum_i\sum_p m_i(p)[\hat y_i(p)-y_i(p)]^2}
+{\sum_i\sum_p m_i(p)}}.
+\label{eq:rmse}
+\end{equation}
+We also report mean absolute error (MAE) and map correlation. Let
+$\Omega_i=\{p:m_i(p)=1\}$, $N_i=|\Omega_i|$, and let
+$\widetilde{\mathbf y}_i$ and $\widetilde{\hat{\mathbf y}}_i$ denote the valid
+target and prediction vectors after subtracting their respective per-map
+means. Then
+\begin{equation}
+\begin{aligned}
+\rho_i&=\frac{\widetilde{\hat{\mathbf y}}_i^{\top}
+\widetilde{\mathbf y}_i}
+{\|\widetilde{\hat{\mathbf y}}_i\|_2\|\widetilde{\mathbf y}_i\|_2},\\
+\mathrm{MapCorr}&=\frac{\sum_{i\in\mathcal C}N_i\rho_i}
+{\sum_{i\in\mathcal C}N_i}.
+\end{aligned}
+\label{eq:mapcorr}
+\end{equation}
+The set $\mathcal C$ excludes maps with fewer than two valid pixels or zero
+variance in either vector. Thus, map correlation is the valid-pixel-weighted
+mean of per-map Pearson correlations, not one correlation after concatenating
+all cities. RMSE remains the primary unit-aware metric; map correlation checks
+whether relative high- and low-attenuation regions are placed correctly.
+
+\begin{table}[t]
+\centering
+\caption{Evaluation setting.}
+\label{tab:setting}
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabularx}{\columnwidth}{lX}
+\toprule
+Item & Setting \\
+\midrule
+Map & $513\times513$, \SI{1}{m} pixels \\
+Carrier & \SI{7.125}{GHz} \\
+Transmitter & Centered; variable height \\
+Receiver & Ground, \SI{1.5}{m}; buildings masked \\
+Split & 11185/2405/2590 calibration/development/test maps by city \\
+Test cities & Barcelona, Beijing, Carcassonne, Copenhagen, Halifax,
+Jaipur, Johannesburg, Key West, Kuala Lumpur, Osaka, Phuket, Pune, Surat,
+Vancouver \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Height-Aware Attenuation Prior}
+
+Fig.~\ref{fig:overview} summarizes calibration and deployment. The method uses
+known geometry to compute distances, a building/visibility mask to route LoS
+and NLoS pixels, and local windows over the building-height map. Only compact
+calibration tables and linear weights are learned. They are frozen before a
+held-out city is evaluated.
+
+\begin{figure}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tikzpicture}[
+node distance=5mm and 6mm,
+box/.style={draw,rounded corners,align=center,minimum height=7mm,font=\scriptsize},
+arr/.style={-{Latex[length=2mm]},thick}]
+\node[box,fill=gray!10] (input) {Topology, height,\\receiver/LoS masks};
+\node[box,fill=blue!9,right=of input,yshift=5mm] (los) {LoS: FSPL + two ray\\height/radial calibration};
+\node[box,fill=orange!12,right=of input,yshift=-5mm] (nlos) {NLoS: urban/A2G envelope\\+ morphology calibration};
+\node[box,fill=green!10,right=10mm of los,yshift=-5mm] (switch) {Visibility\\selection};
+\node[box,fill=purple!9,right=of switch] (out) {Frozen dense\\attenuation prior};
+\draw[arr] (input) -- (los);
+\draw[arr] (input) -- (nlos);
+\draw[arr] (los) -- (switch);
+\draw[arr] (nlos) -- (switch);
+\draw[arr] (switch) -- (out);
+\end{tikzpicture}}
+\caption{The prior keeps LoS and NLoS propagation mechanisms separate. All
+CKM-specific calibration is fitted on training cities and then frozen.}
+\label{fig:overview}
+\end{figure}
+
+\subsection{LoS Branch}
+
+Let $d_{2D}$ be the horizontal transmitter-receiver distance. The direct and
+image-source reflected distances are
+\begin{equation}
+\begin{aligned}
+d_{\mathrm{LoS}}&=\sqrt{d_{2D}^2+(h_{\mathrm{tx}}-h_{\mathrm{rx}})^2},\\
+d_{\mathrm{ref}}&=\sqrt{d_{2D}^2+(h_{\mathrm{tx}}+h_{\mathrm{rx}})^2}.
+\end{aligned}
+\label{eq:distances}
+\end{equation}
+The free-space term follows the Friis distance dependence, while the coherent
+correction retains the phase difference between the direct and reflected paths
+\cite{rappaport,goldsmith,wocc2021}:
+\begin{align}
+\mathrm{FSPL}&=32.45+20\log_{10}(d_{\mathrm{LoS}}/1000)
++20\log_{10}(f_{\mathrm{MHz}}),\label{eq:fspl}\\
+C_{\mathrm{2ray}}&=-20\log_{10}\left|1+\rho(h_{\mathrm{tx}})
+\frac{d_{\mathrm{LoS}}}{d_{\mathrm{ref}}}
+e^{-j[k(d_{\mathrm{ref}}-d_{\mathrm{LoS}})+\phi(h_{\mathrm{tx}})]}\right|.
+\label{eq:tworay}
+\end{align}
+Here $\rho$ is an effective reflected-field amplitude and $\phi$ is a
+fitted phase offset. They are CKM calibration terms, not material Fresnel
+coefficients. The deployed LoS prior is
+\begin{equation}
+\mathrm{PL}_{\mathrm{LoS}}=\mathrm{FSPL}+C_{\mathrm{2ray}}
++\beta_{\mathrm{LoS}}(h_{\mathrm{tx}})+r(d_{2D},h_{\mathrm{tx}}).
+\label{eq:los}
+\end{equation}
+
+Calibration uses valid LoS pixels from calibration-side cities only. In each
+\SI{5}{m} height bin, a small grid search selects effective amplitude and
+phase. A closed-form bias removes the remaining vertical offset. Finally, a
+smoothed radial table stores the mean residual left by the coherent model.
+Neighboring height bins are smoothed and linearly interpolated at inference.
+This structured sequence targets the constructive/destructive rings visible
+around the centered transmitter without giving the prior enough flexibility to
+memorize building layouts.
+
+In implementation terms, the LoS correction is a lookup table. The stored
+entries are the effective $\rho$, $\phi$, and bias curves indexed by
+transmitter-height bin, together with $r$ indexed by height and radial-distance
+bin. Inference linearly interpolates neighboring height entries and reads the
+radial correction for each receiver; it does not refit on the new map. This
+distinction matters: although the table is data-calibrated, all 14 reported
+test cities are unseen during table construction. The free-space/two-ray
+structure supplies extrapolatable geometry, while the lookup table supplies a
+compact correction learned on other environments.
+
+For each height bin, candidates
+$\hat\rho\in\{0,0.05,\ldots,1.5\}$ and 48 uniformly spaced phases in
+$[-\pi,\pi)$ are evaluated. For a candidate pair, the remaining bias is
+\begin{equation}
+\hat\beta(\hat\rho,\hat\phi)=\frac{1}{|B_h|}\sum_{i\in B_h}
+\left[y_i-\mathrm{FSPL}_i-C_{\mathrm{2ray},i}(\hat\rho,\hat\phi)\right].
+\label{eq:los-fit}
+\end{equation}
+The pair minimizing the bin RMSE is retained. After smoothing the height
+curves, the remaining error is averaged by radius and stored as $r$. This
+ordering prevents the table from encoding arbitrary two-dimensional building
+texture.
+
+\subsection{NLoS Branch}
+
+The blocked-link branch starts from two coarse shapes. The first is a
+COST231/Hata-derived urban trend; the second is an elevation-dependent A2G
+NLoS envelope \cite{cost231,alhourani2014,khawaja_survey}. Their original
+domains do not directly match this CKM setup, so they are used as basis
+functions rather than transferred as final laws. Each map has $513\times513$
+cells at \SI{1}{m} spacing, with the transmitter projection at cell
+$(256,256)$. For a receiver cell $p=(u,v)$, the implementation first computes
+\begin{equation}
+\begin{aligned}
+d_{2D}(p)&=\SI{1}{m}\sqrt{(u-256)^2+(v-256)^2},\\
+d(p)&=\max\{d_{2D}(p),\SI{1}{m}\},\\
+h_t&=\max\{h_{\mathrm{tx}},\SI{1}{m}\},\quad
+h_r=\max\{h_{\mathrm{rx}},\SI{0.5}{m}\}=\SI{1.5}{m}.
+\end{aligned}
+\label{eq:nlos-geometry}
+\end{equation}
+Thus $d_{\mathrm{km}}=\max\{d(p)/\SI{1000}{m},0.001\}$; all logarithms
+below receive the numerical value in the stated unit. With
+$a(h_{\mathrm{rx}})=(1.1\log_{10}f_{\mathrm{MHz}}-0.7)h_{\mathrm{rx}}
+-(1.56\log_{10}f_{\mathrm{MHz}}-0.8)$, and
+$\eta(h_t)=44.9-6.55\log_{10}h_t$, the first basis is
+\begin{equation}
+\begin{aligned}
+\mathrm{PL}_{C}={}&46.3+33.9\log_{10}f_{\mathrm{MHz}}
+-13.82\log_{10}h_t-a(h_r)\\
+&+\eta(h_t)\log_{10}d_{\mathrm{km}}+3.
+\end{aligned}
+\label{eq:cost}
+\end{equation}
+The $+3$ dB metropolitan correction is retained inside this empirical basis;
+Eq.~\eqref{eq:cost} is not claimed to be a directly valid COST231 deployment
+law at the carrier frequency and heights considered here. At
+$f=\SI{7.125}{GHz}$, let
+$\theta(p)=(180/\pi)\tan^{-1}[(h_t-h_r)/d(p)]$ and
+$\lambda_0=20\log_{10}(4\pi h_t f/c)$. The second basis is
+\begin{equation}
+\mathrm{PL}_{\mathrm{A2G,NLoS}}=\lambda_0-16.16
++12.0436\exp\!\left[-\frac{90-\theta}{7.52}\right].
+\label{eq:a2g}
+\end{equation}
+The conservative raw estimate is
+\begin{equation}
+P_0=\operatorname{clip}
+\!\left(\max\{\mathrm{PL}_{C},\mathrm{PL}_{\mathrm{A2G,NLoS}}\},0,185\right).
+\label{eq:raw-nlos}
+\end{equation}
+The clipping is applied \emph{before} $P_0$ and $P_0^2$ enter the regression.
+
+The visibility mask identifies that a direct path is blocked but not which
+street canyon, roof edge, or clutter configuration dominates the remaining
+path. We therefore augment $P_0$ with exactly defined local quantities. Let
+$B(p)=\mathbf 1\{T(p)\ne0\}$ be the building indicator from topology height
+$T$; let $G=1-B$; and let
+$N(p)=\mathbf 1\{m_{\mathrm{LoS}}(p)\le0.5\}G(p)$ be the NLoS-ground
+indicator. For odd $k$, define the reflect-padded box mean
+\begin{equation}
+\mathcal A_k[z](p)=\frac{1}{k^2}\sum_{q\in\mathcal W_k(p)}z(q).
+\label{eq:boxmean}
+\end{equation}
+The implemented features are
+\begin{equation}
+\begin{aligned}
+\ell_d&=\ln(1+d_{2D}/\SI{1}{m}), & \delta_k&=\mathcal A_k[B],\\
+h_k&=\mathcal A_k[TB]/\SI{90}{m}, & n_k&=\mathcal A_k[N],\\
+\sigma_{\mathrm{sh}}&=2.3197[\max(90-\theta,0)]^{0.2361},\\
+\theta_n&=\operatorname{clip}(\theta/90,0,1), & k&\in\{15,41\}.
+\end{aligned}
+\label{eq:features}
+\end{equation}
+Thus, $h_k$ is the window-averaged building height divided by \SI{90}{m},
+including ground pixels as zeros; it is not the mean conditioned only on
+buildings. The full vector, in implementation order, is
+\begin{equation}
+\begin{aligned}
+\mathbf x=[&P_0^2,P_0,\ell_d,\delta_{15},\delta_{41},h_{15},h_{41},
+\delta_{41}\ell_d,\\
+&n_{15},n_{41},n_{41}\ell_d,\sigma_{\mathrm{sh}},\theta_n,
+n_{41}\theta_n,1]^{\top}.
+\end{aligned}
+\label{eq:nlos-vector}
+\end{equation}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figures/nlos_heldout_example.png}
+\caption{A held-out example from Vancouver
+(``sample\_15262'', $h_{\mathrm{tx}}=\SI{50.30}{m}$, dense/high-rise,
+low-transmitter regime). Panel (a) shows the geometric support; (b)--(d) are
+the LoS target, frozen lookup-table prior, and signed error; (e) visualizes the
+raw physical NLoS envelope $P_0$; and (f)--(h) give the NLoS target, calibrated
+prior, and signed error. Grey excludes pixels outside the displayed
+regime or without a valid target. The unseen map contains 119180 LoS and 25607
+NLoS receivers, with \SI{2.10}{dB} and \SI{2.54}{dB} RMSE, respectively.}
+\label{fig:nlos-example}
+\end{figure*}
+
+Table~\ref{tab:all-nlos-terms} removes any remaining ambiguity by giving the
+array operation, scale, and interpretation of every regressor. Window sizes
+are in pixels and therefore metres here; $\mathcal A_k$ always includes all
+$k^2$ cells after reflect padding, including zeros over ground in the height
+features. No standardization or centering is applied before the dot product.
+
+\begin{table*}[!t]
+\centering
+\caption{Exact construction of every NLoS multilinear-regression input at
+receiver cell $p$. The feature order is also the coefficient-vector order.
+``Unitless'' means that the stated metre or degree normalization has already
+been applied.}
+\label{tab:all-nlos-terms}
+\scriptsize
+\renewcommand{\arraystretch}{0.94}
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabularx}{\textwidth}{c l X l}
+\toprule
+$j$ & Feature $x_j(p)$ & Exact computation & Scale and role \\
+\midrule
+1 & $P_0^2$ & $[\operatorname{clip}(\max\{\mathrm{PL}_{C},\mathrm{PL}_{\mathrm{A2G,NLoS}}\},0,185)]^2$ & \si{dB^2}; quadratic raw trend \\
+2 & $P_0$ & Eq.~\eqref{eq:raw-nlos}, after clipping & \si{dB}; raw urban/A2G envelope \\
+3 & $\ell_d$ & $\ln[1+d_{2D}(p)/\SI{1}{m}]$ & unitless; radial growth \\
+4 & $\delta_{15}$ & $15^{-2}\sum_{q\in\mathcal W_{15}(p)}\mathbf 1\{T(q)\ne0\}$ & unitless; local building fraction \\
+5 & $\delta_{41}$ & $41^{-2}\sum_{q\in\mathcal W_{41}(p)}\mathbf 1\{T(q)\ne0\}$ & unitless; contextual building fraction \\
+6 & $h_{15}$ & $(15^2\,\SI{90}{m})^{-1}\sum_{q\in\mathcal W_{15}(p)}T(q)\mathbf 1\{T(q)\ne0\}$ & unitless; local height mass \\
+7 & $h_{41}$ & $(41^2\,\SI{90}{m})^{-1}\sum_{q\in\mathcal W_{41}(p)}T(q)\mathbf 1\{T(q)\ne0\}$ & unitless; contextual height mass \\
+8 & $\delta_{41}\ell_d$ & $x_5(p)x_3(p)$ & unitless; density--range interaction \\
+9 & $n_{15}$ & $15^{-2}\sum_{q\in\mathcal W_{15}(p)}\mathbf 1\{m_{\mathrm{LoS}}(q)\le0.5\}\mathbf 1\{T(q)=0\}$ & unitless; local blocked-ground fraction \\
+10 & $n_{41}$ & $41^{-2}\sum_{q\in\mathcal W_{41}(p)}\mathbf 1\{m_{\mathrm{LoS}}(q)\le0.5\}\mathbf 1\{T(q)=0\}$ & unitless; contextual blocked-ground fraction \\
+11 & $n_{41}\ell_d$ & $x_{10}(p)x_3(p)$ & unitless; blockage--range interaction \\
+12 & $\sigma_{\mathrm{sh}}$ & $2.3197[\max\{90-\theta(p),0\}]^{0.2361}$ & \si{dB}; elevation-dependent shadowing proxy \\
+13 & $\theta_n$ & $\operatorname{clip}[\theta(p)/90,0,1]$ & unitless; normalized elevation angle \\
+14 & $n_{41}\theta_n$ & $x_{10}(p)x_{13}(p)$ & unitless; blockage--elevation interaction \\
+15 & $1$ & an all-ones array with the same $513\times513$ shape & unitless; intercept \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+The regression regime is observable. From a complete topology map, let $D$ be
+its building-pixel fraction and $H$ its mean nonzero building height. The class
+is dense/high-rise if $D\ge0.2549$ or $H\ge\SI{15.95}{m}$; open/low-rise if
+$D\le0.1957$ and $H\le\SI{10.91}{m}$; and mixed/mid-rise otherwise.
+Transmitter-height bins are low for $h_{\mathrm{tx}}\le\SI{58.12}{m}$,
+middle up to \SI{103.85}{m}, and high above it. For regime $q$, a multiple
+linear (multilinear) regression on calibration pixels gives
+\begin{equation}
+\begin{aligned}
+\hat{\mathbf w}_{q}&=\arg\min_{\mathbf w}
+\sum_{i\in q}(\mathbf x_i^{\top}\mathbf w-y_i)^2,\\
+\mathrm{PL}_{\mathrm{NLoS}}&=\operatorname{clip}
+(\mathbf x^{\top}\hat{\mathbf w}_q,20,185).
+\end{aligned}
+\label{eq:nlos}
+\end{equation}
+The current artifact contains all $3\times3$ NLoS topology/height vectors;
+the inference code checks compatible height-bin fallbacks only if an exact key
+is absent. This branch is semi-empirical, but its raw estimate, each feature,
+selected regime, coefficient, and pre-clipping contribution remain auditable.
+
+Table~\ref{tab:coef-examples} gives selected exact coefficients for the middle
+height bin. Coefficients cannot be compared by magnitude alone because the
+features have different scales. Table~\ref{tab:term-audit} therefore reports
+pixel-weighted feature values and products $w_jx_j$ on a deterministic audit
+of every tenth final-test map: 259 unseen maps and 3031586 NLoS pixels. The
+largest terms strongly cancel. In particular, the intercept, $P_0$, and
+$P_0^2$ average approximately $+179.7$, $-132.6$, and $+71.8$ dB. This makes
+the result sensitive to correlated polynomial terms and impairs
+interpretability. The next calibration iteration should remove $P_0^2$ and
+refit every regime; it must not simply drop the term while retaining the
+present coefficients.
+
+\begin{table*}[t]
+\centering
+\caption{Examples of exact NLoS multilinear-regression coefficients for the
+middle transmitter-height bin. The full nine-vector table is archived with the
+paper source.}
+\label{tab:coef-examples}
+\scriptsize
+\setlength{\tabcolsep}{4.2pt}
+\begin{tabular}{lrrr}
+\toprule
+Feature & Open/low-rise & Mixed/mid-rise & Dense/high-rise \\
+\midrule
+$P_0^2$ & 0.001605 & 0.003632 & 0.005737 \\
+$P_0$ & -0.500636 & -0.994251 & -1.409844 \\
+$\ell_d$ & 8.167217 & 6.663205 & 4.112897 \\
+$\delta_{41}$ & -14.937161 & -28.582537 & -34.561308 \\
+$n_{41}$ & 12.112861 & 16.509693 & 12.404412 \\
+$\sigma_{\mathrm{sh}}$ & -8.316422 & -2.183255 & -3.674099 \\
+$\theta_n$ & -17.901197 & -4.058654 & -7.714892 \\
+Bias & 157.615565 & 153.694717 & 195.570915 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\caption{Largest mean NLoS regression terms across the 259-map held-out audit.
+$\bar w$ is the NLoS-pixel-weighted applied coefficient, $\bar x$ is the mean
+feature value, and the last columns are pre-clipping contributions in dB.
+These are scale diagnostics, not causal ablations.}
+\label{tab:term-audit}
+\scriptsize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lrrrr}
+\toprule
+Feature & $\bar w$ & $\bar x$ & $\overline{wx}$ & $\overline{|wx|}$ \\
+\midrule
+Bias & 179.741 & 1.000 & 179.741 & 179.741 \\
+$P_0$ & -1.010 & 131.273 & -132.611 & 134.396 \\
+$P_0^2$ & 0.004158 & 17272.148 & 71.847 & 72.366 \\
+$\sigma_{\mathrm{sh}}$ & -5.504 & 6.299 & -34.739 & 34.739 \\
+$\ell_d$ & 4.634 & 5.263 & 24.418 & 24.418 \\
+$\delta_{41}$ & -31.006 & 0.212 & -6.371 & 6.372 \\
+$n_{41}$ & 10.135 & 0.578 & 5.534 & 5.534 \\
+$\delta_{41}\ell_d$ & 4.620 & 1.105 & 4.947 & 4.954 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+The complete prior uses the deterministic LoS mask $m_{\mathrm{LoS}}$:
+\begin{equation}
+\mathrm{PL}_{\mathrm{prior}}=m_{\mathrm{LoS}}\mathrm{PL}_{\mathrm{LoS}}
++(1-m_{\mathrm{LoS}})\mathrm{PL}_{\mathrm{NLoS}}.
+\label{eq:combined}
+\end{equation}
+
+\section{Results}
+
+Table~\ref{tab:main} gives the final attenuation-only test result. The prior
+reaches \SI{1.9383}{dB} RMSE and \SI{1.2319}{dB} MAE across all valid receiver
+pixels. The map correlation of 0.947710 shows that its accuracy is not obtained
+only by matching a global offset: relative high- and low-attenuation regions
+are generally placed correctly. The LoS error is \SI{1.7519}{dB}. NLoS remains
+the hard regime at \SI{3.5143}{dB}, consistent with the unobserved identity of
+the dominant diffracted or reflected path after direct-path blockage.
+
+\begin{table}[t]
+\centering
+\caption{Frozen prior on the 2590-map, 14-city test set.}
+\label{tab:main}
+\scriptsize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lrr}
+\toprule
+Metric & Value & Unit \\
+\midrule
+Overall RMSE & 1.9383 & dB \\
+Overall MAE & 1.2319 & dB \\
+LoS RMSE & 1.7519 & dB \\
+NLoS RMSE & 3.5143 & dB \\
+Map correlation & 0.947710 & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Height is part of the estimator rather than a post-hoc reporting variable.
+Table~\ref{tab:height} shows the frozen prior over held-out validation and test
+cities for four physical height intervals. Error decreases from
+\SI{2.180}{dB} at \SIrange{12}{50}{m} to \SI{1.627}{dB} above \SI{300}{m}.
+The largest change is in NLoS, where low transmitters interact more strongly
+with local rooftops and street canyons. The trend does not imply that altitude
+alone solves dense prediction; it shows why a single height-independent
+calibration would combine physically different regimes.
+
+\begin{table}[t]
+\centering
+\caption{Prior RMSE by height on held-out validation and test cities.}
+\label{tab:height}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{lrrrr}
+\toprule
+Height & Overall & LoS & NLoS & Maps \\
+\midrule
+12--50 m & 2.180 & 1.797 & 3.756 & 1211 \\
+50--150 m & 1.936 & 1.785 & 3.228 & 2634 \\
+150--300 m & 1.680 & 1.666 & 2.259 & 786 \\
+300--500 m & 1.627 & 1.619 & 2.255 & 362 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The result is best interpreted as a strong physical/statistical anchor rather
+than a universal propagation model. The coefficients are tied to the fixed
+frequency, antenna assumptions, simulator, and available visibility mask. The
+city split tests transfer across urban layouts, but the labels still come from
+ray tracing rather than field measurements.
+
+\subsection{Flat-Terrain Limitation and Future Work}
+
+All current scenes use flat terrain. Consequently, the reported visibility,
+distance, and height relationships do not account for terrain-induced blockage
+or for changes in local ground elevation. Slopes and ridges can alter both the
+LoS boundary and the meaning of transmitter height relative to nearby
+receivers. Follow-up work will introduce non-flat digital terrain, compute
+antenna heights and reflected-path geometry relative to local elevation, add
+terrain descriptors to the NLoS calibration, and evaluate transfer across
+relief classes. Field measurements are also required to separate simulator fit
+from over-the-air validity.
+
+\section{Conclusion}
+
+This paper presented an attenuation prior for dense, variable-height UAV CKMs.
+The prior separates a coherent, height-calibrated LoS model from a
+morphology-calibrated NLoS model and freezes every fitted coefficient before
+unseen cities are evaluated. On 2590 maps from 14 held-out cities, it reaches
+\SI{1.9383}{dB} overall RMSE and 0.947710 map correlation. Its main practical
+value is transparency: stable range, height, visibility, and morphology
+structure is captured before a more flexible model is considered. The next
+steps are an explicit component ablation, non-flat terrain, and measurement
+validation.
+
+\bibliographystyle{IEEEtran}
+\IEEEtriggeratref{12}
+\bibliography{references}
+
+\end{document}

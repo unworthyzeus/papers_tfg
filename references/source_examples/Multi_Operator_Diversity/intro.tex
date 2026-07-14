@@ -1,0 +1,34 @@
+ In May 2021, Morgan Stanley released a forecast \cite{MS} stating that by 2050 the total market of Urban Air Mobility (UAM, including drone delivery, air taxi, patrolling drones, to name a few) will reach up to 11\% of the projected global Gross Domestic Product (GDP). The same document claims that the large-scale deployments of drone-based urban delivery are expected to be in place by 2030. 
+ 
+Apart from the mobility, Unmanned Aerial Vehicles and Systems (UAVs, UASs) are expected to play an essential role in future 6G networks where aerial Base Stations (BSs) will provide connectivity to ground users \cite{Tut18, azari2021evolution, UAV_6G}. Shorter-term predictions say that by 2025, the drone services market will be worth a total of USD 63.6 billion \cite{business2021drone} and the UAV fleet, both recreational and commercial, is projected to reach 2 to 3 million by 2023 \cite{faa2019prediction}.
+
+Managing such a large fleet requires the design of UAS Traffic Management (UTM) solutions in order to ensure expected levels of safety, security, operation transparency, and airspace usage efficiency \cite{Dr_Tech}. The UTM framework formulated by International Civil Aviation Organization (ICAO) in \cite{ICAO} includes cellular technology as a critical enabler of large-scale drone deployments. Several competing UTM implementations have been proposed \cite{Bauranov}. All of them rely on the existence of a reliable command and control (C2) link. Indeed, cellular networks are an ideal candidate as they provide ubiquitous coverage and remove the need for the UTM provider to deploy expensive dedicated wireless infrastructure. 3GPP has taken the first steps to introduce aerial vehicles some time ago now \cite{3gpp2018enhanced}, but many questions remain open \cite{Tut18, UAV_6G}.
+
+\subsection{State of the Art: overview of open problems}
+\par In an effort to evaluate the performance of UAVs in cellular networks many different types of studies have been performed, from analysis to simulator based, to actual experimental work. Several relevant overviews can be found in \cite{Tut18, azari2021evolution}. In this article, let us provide just a few of the most relevant works.  
+
+An in-depth analysis of the performance of UAVs in a cellular network based on stochastic geometry provided in \cite{azari2019cellular}. Authors of \cite{rodriguez2021air} and \cite{bertold} characterized the UAV channels through dedicated measurement campaigns. All works listed above conclude that the antenna configuration at BSs should be considered when introducing aerial users to a cellular network as the antennas are pointed towards the ground generally. 
+
+Other simulation-based research has proven that current LTE networks do not provide sufficient coverage at altitudes above building height, mainly due to interference problems \cite{colpaert2018aerial} and high handover rates \cite{colpaert2020beamforming}. Several measurement campaigns \cite{gharib2021exhaustive, Fakhreddine2019HandoverCF} showed satisfying results both in terms of coverage and handover rates. However, they were performed in rural areas where the BS density is much lower compared to an urban scenario. 
+
+\textbf{Takeaways:} A high density of base stations results in high signal strengths but simultaneously high interference levels due to line-of-sight conditions. Moreover, the BS antennas are downtilted to optimize the ground coverage. Consequently, the problem of achieving a highly reliable connection with UAVs in an urban environment remains open due to i) limited coverage caused by high interference (growing with increasing flight altitude); ii) frequent handovers. 
+\subsection{Multi-Operator Diversity as a Potential Solution}
+This article suggests a solution to increase the reliability of UAV communication links while requiring no modifications of the terrestrial cellular networks. Several studies have shown through network level measurements that equipping a UAV with multiple LTE modems to connect to different providers' networks will improve reliability and Quality of Service \cite{amorim2019improve,sae2020reliability,bacco2022airtoground}. Thus, we can assume that introducing network diversity improves the coverage and handover rates experienced by UAVs. Indeed, network infrastructure from different providers is deployed at different base station sites in the city\footnote{Even when the sites are shared (for instance the same mast can be used), the sector antennas are usually pointed differently. This is due to the need to optimize the performance under different underlying network topology.}. This feature reduces the probability of having a bad connection to all BSs at a given location of UAV. 
+
+The price to pay is a slightly higher payload weight since the modern modems are quite compact. The size and weight can be reduced even further if a dedicated multi-connection module is designed. Another factor is an increased power consumption. However, a more stable connection results in less frequent modifications of the flight path \cite{7888557, Sibren19}. Note that power consumption of the communication modems is negligible in comparison with the propulsion energy \cite{7888557}.
+%\paragraph{BS antenna sidelobes boosting} unfortunately, the effect of antenna sidelobe suppression, a feature implemented in many directive cellular antennas, is often ignored in the UAV-related literature. In this work, we investigate i) the influence of sidelobe suppression and ii) assess the possible effect of boosting the gain of sidelobes pointing upwards.
+\subsection{Contributions}
+The main contributions of this work are:
+\begin{enumerate}
+    \item We designed a realistic simulator taking into account
+    \begin{itemize}
+        \item real 3D environment including information about i) ground surface, ii) buildings and infrastructure;
+        \item real cellular network parameters (e.g., BS locations, sector orientations, used power, etc.) reported by the Belgian operators to the government;
+        \item 3D antenna patterns (with adaptable sidelobes);
+        \item specific UAV channel models;
+        \item users' mobility (UAVs).
+    \end{itemize}
+    \item We assessed potential effects of multi-operator diversity on i) coverage and ii) handovers.
+%    \item We assessed the effects of sidelobe suppression and boosting on the achievable coverage.
+\end{enumerate}
+Note that in this work, we focus on a promising use case of drone delivery. UAV delivery will probably be performed at higher altitudes than other popular operations (e.g., patrolling) due to safety reasons. Though the higher altitude can result in more severe damage in case of malfunction, it gives a better time margin for the safety systems to act. For this reason we use altitudes higher than foreseen in \cite{ICAO}. Of course, the presented results are useful for other UAV applications when only the appropriate altitudes are analyzed.
