@@ -559,52 +559,31 @@ the pixel-weighted score is therefore LoS dominated, 424 of the 2590 test maps
 contain more than 25\% NLoS receivers, motivating the separate regime metrics.
 
 Table~\ref{tab:nlos-applied-terms} complements the raw coefficients with their
-actual test-set scale. For each NLoS receiver, the selected topology and
-transmitter-height regime supplies one coefficient for each feature. Multiplying
-that coefficient by the receiver's feature value gives its applied term before
-clipping. ``Mean contribution'' averages the signed applied terms; ``mean
-magnitude'' averages their absolute values. Positive and negative terms
-therefore cancel only in the first column. Every NLoS receiver has equal weight,
-and all displayed features are nonnegative, so a gap between the columns means
-that the fitted coefficient changes sign among regimes.
-
-The sign changes are not determined by topology alone. The $\mathrm{PL}_{C}$
-coefficient is negative for dense/high-rise at high transmitter height,
-mixed/mid-rise at high height, and open/low-rise at middle height, but positive
-in the other six regimes. Across the complete NLoS test set, positive
-$\mathrm{PL}_{C}$ terms add \SI{15.952}{dB} to the pixel-weighted average and
-negative terms subtract \SI{2.126}{dB}. The signed result is therefore
-$15.952-2.126=\SI{13.826}{dB}$, while ignoring the signs gives
-$15.952+2.126=\SI{18.078}{dB}$.
-The $n_{41}$ coefficient is negative at low transmitter height in all three
-topologies and for open/low-rise at high height, but positive in the other five
-regimes.
-$\delta_{41}$ and $\delta_{41}\ell_d$ reverse sign only for open/low-rise at
-high transmitter height, so their cancellation is small. Bias,
-$\sigma_{\mathrm{sh}}$, $\ell_d$, and $\theta_n$ retain one sign in all nine
-regimes. Marginal averages of coefficients and features are therefore omitted:
-their pairing changes across regimes. These remain scale diagnostics, not
-causal ablations, because correlated regressors can exchange weight.
+actual test-set scale. For each NLoS receiver, its regime-specific coefficient
+is multiplied by its feature value before clipping; the table reports the
+signed mean of that term over all valid NLoS receivers. Opposite
+signs across regimes can cancel in this average, so the values are scale
+diagnostics rather than causal feature importance scores.
 
 \begin{table}[t]
 \centering
-\caption{Largest NLoS terms by mean absolute pre-clipping contribution over
-all \num{31365314} valid NLoS test receivers. Values are in dB.}
+\caption{Pixel-weighted signed mean NLoS regression contributions over all
+\num{31365314} valid NLoS test receivers. Rows are ordered by absolute value.}
 \label{tab:nlos-applied-terms}
 \scriptsize
-\setlength{\tabcolsep}{5.5pt}
-\begin{tabular}{lrr}
+\setlength{\tabcolsep}{8pt}
+\begin{tabular}{lr}
 \toprule
-Feature & Mean contribution & Mean magnitude \\
+Feature & Mean contribution [dB] \\
 \midrule
-Bias & 149.774 & 149.774 \\
-$\sigma_{\mathrm{sh}}$ & -72.725 & 72.725 \\
-$\ell_d$ & 20.188 & 20.188 \\
-$\mathrm{PL}_{C}$ & 13.826 & 18.078 \\
-$\delta_{41}$ & -6.287 & 6.310 \\
-$\delta_{41}\ell_d$ & 4.948 & 4.974 \\
-$\theta_n$ & -4.454 & 4.454 \\
-$n_{41}$ & 1.771 & 3.752 \\
+Bias & 149.774 \\
+$\sigma_{\mathrm{sh}}$ & -72.725 \\
+$\ell_d$ & 20.188 \\
+$\mathrm{PL}_{C}$ & 13.826 \\
+$\delta_{41}$ & -6.287 \\
+$\delta_{41}\ell_d$ & 4.948 \\
+$\theta_n$ & -4.454 \\
+$n_{41}$ & 1.771 \\
 \bottomrule
 \end{tabular}
 \end{table}
