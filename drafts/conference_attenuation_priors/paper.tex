@@ -559,31 +559,33 @@ the pixel-weighted score is therefore LoS dominated, 424 of the 2590 test maps
 contain more than 25\% NLoS receivers, motivating the separate regime metrics.
 
 Table~\ref{tab:nlos-applied-terms} complements the raw coefficients with their
-actual test-set scale. For every valid NLoS receiver, each entry is computed
-before final clipping as $w_jx_j$. The signed mean shows its average direction;
-the absolute mean ranks the size of the applied term. These are scale
-diagnostics, not causal leave-one-feature-out ablations, because fitted terms
-can cancel and correlated regressors can exchange weight.
+actual test-set scale. For every valid NLoS receiver in regime $q$, each entry
+is computed before final clipping as $w_{q,j}x_j$. The signed mean shows its
+average direction, while the mean magnitude ranks the size of the applied
+term. Marginal averages of coefficients and features are omitted because their
+pairing changes across regimes. These are scale diagnostics, not causal
+leave-one-feature-out ablations, because fitted terms can cancel and correlated
+regressors can exchange weight.
 
 \begin{table}[t]
 \centering
-\caption{Largest pixel-weighted NLoS regression terms over all
-\num{31365314} valid NLoS test receivers.}
+\caption{Largest NLoS terms by mean absolute pre-clipping contribution over
+all \num{31365314} valid NLoS test receivers. Values are in dB.}
 \label{tab:nlos-applied-terms}
 \scriptsize
-\setlength{\tabcolsep}{2.8pt}
-\begin{tabular}{lrrrr}
+\setlength{\tabcolsep}{5.5pt}
+\begin{tabular}{lrr}
 \toprule
-Feature & $\bar w$ & $\bar x$ & $\overline{wx}$ & $\overline{|wx|}$ \\
+Feature & Mean contribution & Mean magnitude \\
 \midrule
-Bias & 149.774 & 1.000 & 149.774 & 149.774 \\
-$\sigma_{\mathrm{sh}}$ & -11.453 & 6.317 & -72.725 & 72.725 \\
-$\ell_d$ & 3.825 & 5.265 & 20.188 & 20.188 \\
-$\mathrm{PL}_{C}$ & 0.104 & 131.449 & 13.826 & 18.078 \\
-$\delta_{41}$ & -30.616 & 0.216 & -6.287 & 6.310 \\
-$\delta_{41}\ell_d$ & 4.618 & 1.125 & 4.948 & 4.974 \\
-$\theta_n$ & -22.960 & 0.215 & -4.454 & 4.454 \\
-$n_{41}$ & 3.916 & 0.573 & 1.771 & 3.752 \\
+Bias & 149.774 & 149.774 \\
+$\sigma_{\mathrm{sh}}$ & -72.725 & 72.725 \\
+$\ell_d$ & 20.188 & 20.188 \\
+$\mathrm{PL}_{C}$ & 13.826 & 18.078 \\
+$\delta_{41}$ & -6.287 & 6.310 \\
+$\delta_{41}\ell_d$ & 4.948 & 4.974 \\
+$\theta_n$ & -4.454 & 4.454 \\
+$n_{41}$ & 1.771 & 3.752 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -642,7 +644,7 @@ spread, and angular spread. The raw median wall-clock difference is therefore
 about $1700\times$ for the stored-mask prior core. This is not a like-for-like
 speedup because MATLAB returns three channel quantities, whereas this paper's
 prior returns only attenuation. Nevertheless, the comparison shows a
-substantial computational gap at the same spatial resolution. A companion
+substantial computational gap at the same spatial resolution. A future journal
 paper will apply analogous
 interpretable priors to delay and angular spread, enabling a closer
 multi-output comparison.
@@ -654,22 +656,34 @@ LoS boundary and the meaning of transmitter height relative to nearby
 receivers. Follow-up work will introduce non-flat digital terrain, compute
 antenna heights and reflected-path geometry relative to local elevation, add
 terrain descriptors to the NLoS calibration, and evaluate transfer across
-relief classes. Field measurements are also required to separate simulator fit
-from over-the-air validity.
+relief classes.
 
 \section{Conclusion}
 
 This paper presented an attenuation prior for dense, variable-height UAV CKMs.
-The prior separates a coherent, height-calibrated LoS model from a
-morphology-calibrated NLoS model and freezes every fitted coefficient before
-unseen cities are evaluated. On 2590 maps from 14 held-out cities, it reaches
-\SI{1.9277}{dB} overall RMSE and 0.948119 map correlation. The analytical
-ablation shows that coherent LoS structure and calibrated NLoS morphology are
-both necessary. Its main practical value is transparency: stable range,
-height, visibility, and morphology
-structure is captured before a more flexible model is considered. Remaining
-work is non-flat terrain, transfer across frequencies and antenna models, and
-field measurement validation.
+Rather than treating attenuation as generic image-to-image regression, it
+assigns stable structure to explicit components: coherent radial and two-ray
+behaviour in LoS, COST231 propagation and local morphology in NLoS, and a
+deterministic visibility mask to route between them. Every lookup table and
+regression coefficient is fitted on the training cities and frozen before the
+unseen cities are evaluated, so the final test result requires no city-specific
+adaptation.
+
+On 2590 maps from 14 held-out cities, the prior reaches \SI{1.9277}{dB}
+overall RMSE, \SI{1.7370}{dB} LoS RMSE, \SI{3.5275}{dB} NLoS RMSE, and
+0.948119 map correlation. The component ablation shows that the coherent LoS
+structure and calibrated NLoS morphology are complementary rather than
+interchangeable. Separate regime reporting is essential: the aggregate metric
+is LoS dominated, while hundreds of maps contain substantial NLoS support.
+
+The broader conclusion is that a strong CKM estimator should explain stable
+physical and statistical structure before a more flexible model is asked to
+learn the remaining local detail. Here that principle yields a compact,
+auditable CPU estimator with a median runtime of \SI{0.0602}{s} per map. The
+prior can therefore serve both as a standalone surrogate and as a frozen anchor
+for residual learning. Future work will incorporate non-flat terrain, study
+transfer across frequencies and antenna configurations, and extend the same
+prior-first methodology to delay and angular spread in a future journal paper.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
