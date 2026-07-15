@@ -559,13 +559,33 @@ the pixel-weighted score is therefore LoS dominated, 424 of the 2590 test maps
 contain more than 25\% NLoS receivers, motivating the separate regime metrics.
 
 Table~\ref{tab:nlos-applied-terms} complements the raw coefficients with their
-actual test-set scale. For every valid NLoS receiver in regime $q$, each entry
-is computed before final clipping as $w_{q,j}x_j$. The signed mean shows its
-average direction, while the mean magnitude ranks the size of the applied
-term. Marginal averages of coefficients and features are omitted because their
-pairing changes across regimes. These are scale diagnostics, not causal
-leave-one-feature-out ablations, because fitted terms can cancel and correlated
-regressors can exchange weight.
+actual test-set scale. For receiver $p$, define the pre-clipping contribution
+of feature $j$ as $t_j(p)=w_{q(p),j}x_j(p)$, where $q(p)$ is its topology and
+transmitter-height regime. The two columns report $\mathbb{E}[t_j]$ and
+$\mathbb{E}[|t_j|]$, respectively, with every NLoS receiver carrying equal
+weight. Because all displayed features are nonnegative, a contribution changes
+sign only when its regime-specific coefficient does. If the coefficient keeps
+one sign, the mean magnitude equals the absolute signed mean; any gap between
+them measures cancellation among regimes.
+
+The sign changes are not determined by topology alone. The $\mathrm{PL}_{C}$
+coefficient is negative for dense/high-rise at high transmitter height,
+mixed/mid-rise at high height, and open/low-rise at middle height, but positive
+in the other six regimes. Over all NLoS receivers,
+$\mathbb{E}[\max(t_{\mathrm{PL}_{C}},0)]=\SI{15.952}{dB}$ and
+$\mathbb{E}[\max(-t_{\mathrm{PL}_{C}},0)]=\SI{2.126}{dB}$, giving
+\SI{13.826}{dB} signed but
+\SI{18.078}{dB} absolute.
+The $n_{41}$ coefficient is negative at low transmitter height in all three
+topologies and for open/low-rise at high height, but positive in the other five
+regimes.
+$\delta_{41}$ and $\delta_{41}\ell_d$ reverse sign only for open/low-rise at
+high transmitter height, so their cancellation is small. Bias,
+$\sigma_{\mathrm{sh}}$, $\ell_d$, and $\theta_n$ retain one sign in all nine
+regimes. Marginal averages of coefficients and features are therefore omitted:
+their pairing changes across regimes. These remain scale diagnostics, not
+causal leave-one-feature-out ablations, because correlated regressors can
+exchange weight.
 
 \begin{table}[t]
 \centering
