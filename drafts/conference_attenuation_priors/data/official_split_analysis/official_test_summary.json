@@ -1,0 +1,240 @@
+{
+  "generated_utc": "2026-07-15T15:21:19Z",
+  "split_contract": {
+    "source": "Try 74/75 compatible split_city_holdout_try80",
+    "split_seed": 42,
+    "train_maps": 10840,
+    "validation_maps": 2750,
+    "test_maps": 2590,
+    "train_cities": [
+      "Abidjan",
+      "Abu Dhabi",
+      "Alexandria",
+      "Antigua Guatemala",
+      "Athens",
+      "Bangalore",
+      "Bangkok",
+      "Bath",
+      "Berlin",
+      "Bratislava",
+      "Brugge",
+      "Buenos Aires",
+      "Canberra",
+      "Chefchaouen",
+      "Dalian",
+      "Hanoi",
+      "Ho Chi Minh City",
+      "Hyderabad",
+      "Kinshasa",
+      "Leuven",
+      "Ljubljana",
+      "Luanda",
+      "Lyon",
+      "Manaus",
+      "Minsk",
+      "Nagpur",
+      "Paris",
+      "Rio de Janeiro",
+      "Santiago",
+      "Shanghai",
+      "Siem Reap",
+      "St. Louis",
+      "Thane",
+      "Toledo",
+      "Valparaiso",
+      "Venice",
+      "Vienna"
+    ],
+    "validation_cities": [
+      "Bilbao",
+      "Chiang Mai",
+      "Cleveland",
+      "Dhaka",
+      "Dubrovnik",
+      "Fortaleza",
+      "Marrakesh",
+      "Mexico City",
+      "Munich",
+      "Nazareth",
+      "Nice",
+      "Salvador",
+      "Segovia",
+      "Tunis",
+      "Victoria"
+    ],
+    "test_cities": [
+      "Barcelona",
+      "Beijing",
+      "Carcassonne",
+      "Copenhagen",
+      "Halifax",
+      "Jaipur",
+      "Johannesburg",
+      "Key West",
+      "Kuala Lumpur",
+      "Osaka",
+      "Phuket",
+      "Pune",
+      "Surat",
+      "Vancouver"
+    ],
+    "calibration_membership": "training cities only"
+  },
+  "final_variant": {
+    "name": "regime_nlos_ridge",
+    "selection_reason": "observable topology and transmitter-height regimes selected on the validation component ablation; no test-set tuning",
+    "test_metrics": {
+      "split": "test",
+      "variant": "regime_nlos_ridge",
+      "label": "full prior, 9 NLoS regimes",
+      "overall_rmse_db": 1.927716511197784,
+      "overall_mae_db": 1.215073602053148,
+      "overall_pixels": 423087119,
+      "los_rmse_db": 1.7370444115023174,
+      "los_mae_db": 1.1145607215660924,
+      "los_pixels": 391721805,
+      "nlos_rmse_db": 3.5274649722355673,
+      "nlos_mae_db": 2.470380243336532,
+      "nlos_pixels": 31365314,
+      "map_correlation": 0.9481190064308505,
+      "maps": 2590
+    }
+  },
+  "visibility_shares": {
+    "full_cells": 681607710,
+    "ground_cells": 545568250,
+    "building_cells": 136039460,
+    "valid_ground_cells": 423087119,
+    "invalid_ground_cells": 122481131,
+    "los_ground_cells": 391721805,
+    "nlos_ground_cells": 153846445,
+    "valid_los_cells": 391721805,
+    "valid_nlos_cells": 31365314,
+    "los_share_ground": 0.7180069679641364,
+    "nlos_share_ground": 0.2819930320358635,
+    "los_share_valid_ground": 0.9258655898715744,
+    "nlos_share_valid_ground": 0.07413441012842559,
+    "building_share_full_map": 0.19958615198176088,
+    "invalid_ground_share_ground": 0.2245019408662436,
+    "per_map_nlos_share_valid_quantiles": {
+      "min": 0.0,
+      "q25": 0.013499356032184627,
+      "median": 0.05515487879940436,
+      "q75": 0.1726949046805432,
+      "q95": 0.4199323977385218,
+      "max": 1.0
+    },
+    "per_map_nlos_share_ground_quantiles": {
+      "min": 0.0,
+      "q25": 0.11432488149934739,
+      "median": 0.24512448088197378,
+      "q75": 0.4579104470032866,
+      "q95": 0.7909244243863683,
+      "max": 1.0
+    }
+  },
+  "city_bootstrap": {
+    "unit": "held-out city",
+    "cities": 14,
+    "draws": 20000,
+    "seed": 20260715,
+    "method": "percentile bootstrap, cities sampled with replacement; pixel-weighted metrics recomputed",
+    "intervals": {
+      "overall_rmse_db": {
+        "low_95": 1.7960401736792566,
+        "median": 1.9248341305690047,
+        "high_95": 2.096739117657414
+      },
+      "overall_mae_db": {
+        "low_95": 1.1350180188177397,
+        "median": 1.2147456700354033,
+        "high_95": 1.3174486880478657
+      },
+      "los_rmse_db": {
+        "low_95": 1.6602938393939306,
+        "median": 1.7382823598759993,
+        "high_95": 1.8225055260753453
+      },
+      "los_mae_db": {
+        "low_95": 1.0622461333229047,
+        "median": 1.1157363688949122,
+        "high_95": 1.171412840505011
+      },
+      "nlos_rmse_db": {
+        "low_95": 3.2105834180493154,
+        "median": 3.508911863196177,
+        "high_95": 3.8528505725225166
+      },
+      "nlos_mae_db": {
+        "low_95": 2.214057331055804,
+        "median": 2.456107426749493,
+        "high_95": 2.7507767675064123
+      },
+      "macro_city_rmse_db": {
+        "low_95": 1.8483604095062127,
+        "median": 1.9807752137693093,
+        "high_95": 2.129279974033024
+      },
+      "map_correlation": {
+        "low_95": 0.9426481994978652,
+        "median": 0.9480379484442243,
+        "high_95": 0.9525778054036244
+      }
+    }
+  },
+  "macro_city_rmse_db": 1.9823345487306714,
+  "visibility_contract": {
+    "source": "binary LineOfSight output from the configured MATLAB ray tracer, stored with each HDF5 sample",
+    "identity_key": "city geometry, transmitter position and height, receiver grid, and ray-tracing settings",
+    "receiver_support": "topology_map == 0; building pixels are excluded before LoS/NLoS shares and metrics"
+  },
+  "runtime": {
+    "maps": 100,
+    "hardware": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
+      "python": "3.12.10",
+      "numpy": "2.4.4"
+    },
+    "scope": "HDF5 read measured separately; core computes one final prior map from the cached configured-ray-tracer visibility mask and the COST231 NLoS term",
+    "hdf5_read_median_s": 0.004551449999780743,
+    "hdf5_read_p95_s": 0.006024839997007802,
+    "prior_core_median_s": 0.06019575000027544,
+    "prior_core_p95_s": 0.08443570499985072,
+    "external_ray_tracing_reference": {
+      "maps": 5,
+      "seed": 20260715,
+      "median_s_per_map": 102.2887378,
+      "mean_s_per_map": 142.85610778,
+      "p95_s_per_map": 241.59120804,
+      "min_s_per_map": 91.4517301,
+      "max_s_per_map": 260.3095472,
+      "hardware": "AMD Ryzen 5 5600X CPU; GPU disabled for both measured paths",
+      "software": "MATLAB R2024b Update 1",
+      "configuration": {
+        "city": "Barcelona",
+        "transmitter_heights_per_layout": 1,
+        "receiver_grid_resolution_m": 1,
+        "max_reflections": 1,
+        "max_diffractions": 0
+      },
+      "scope": "attenuation, delay spread, and angular spread",
+      "visibility_repeat_audit": {
+        "conditions": 5,
+        "receiver_comparisons": 742392,
+        "bit_differences": 0,
+        "all_equal": true,
+        "identity_key": "city geometry, transmitter position and height, receiver grid, and ray-tracing settings"
+      },
+      "raw_median_wall_clock_ratio_vs_prior": 1699.268433394915,
+      "comparability": "same CPU and spatial resolution, but different output scope and timing boundaries; the ratio is not a like-for-like algorithmic speedup"
+    }
+  },
+  "fit_contract": {
+    "training_maps": 10840,
+    "max_nlos_pixels_per_map": 1024,
+    "ridge_lambda": 0.01,
+    "seed": 1234,
+    "standardization": "nonbias features standardized within each fitted model"
+  }
+}

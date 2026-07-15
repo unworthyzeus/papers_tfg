@@ -1,0 +1,205 @@
+{
+  "generated_utc": "2026-07-15T15:23:29Z",
+  "split_contract": {
+    "source": "Try 74/75 compatible split_city_holdout_try80",
+    "split_seed": 42,
+    "test_maps": 2590,
+    "test_cities": [
+      "Barcelona",
+      "Beijing",
+      "Carcassonne",
+      "Copenhagen",
+      "Halifax",
+      "Jaipur",
+      "Johannesburg",
+      "Key West",
+      "Kuala Lumpur",
+      "Osaka",
+      "Phuket",
+      "Pune",
+      "Surat",
+      "Vancouver"
+    ]
+  },
+  "model": "COST231 NLoS term plus 14-feature regime-specific ridge calibration",
+  "features": [
+    "pl_c",
+    "log1p_d2d",
+    "density_15",
+    "density_41",
+    "height_15",
+    "height_41",
+    "density_41_x_logd",
+    "nlos_15",
+    "nlos_41",
+    "nlos_41_x_logd",
+    "shadow_sigma",
+    "theta_norm",
+    "nlos_41_x_theta",
+    "bias"
+  ],
+  "regimes": [
+    "dense_highrise|NLoS|high_ant",
+    "dense_highrise|NLoS|low_ant",
+    "dense_highrise|NLoS|mid_ant",
+    "mixed_midrise|NLoS|high_ant",
+    "mixed_midrise|NLoS|low_ant",
+    "mixed_midrise|NLoS|mid_ant",
+    "open_lowrise|NLoS|high_ant",
+    "open_lowrise|NLoS|low_ant",
+    "open_lowrise|NLoS|mid_ant"
+  ],
+  "cost231_test_support": {
+    "valid_nlos_pixels": 31365314,
+    "mean_db": 131.4488626930062,
+    "min_db": 53.29978561401367,
+    "max_db": 147.78207397460938,
+    "high_clip_pixels": 0
+  },
+  "overall_terms_by_mean_absolute_contribution": [
+    {
+      "group": "all",
+      "nlos_pixels": 31365314,
+      "feature": "bias",
+      "mean_coefficient": "149.774473305",
+      "mean_feature_value": "1",
+      "mean_signed_contribution_db": "149.774473305",
+      "mean_absolute_contribution_db": "149.774473305",
+      "absolute_contribution_rank": 1
+    },
+    {
+      "group": "all",
+      "nlos_pixels": 31365314,
+      "feature": "shadow_sigma",
+      "mean_coefficient": "-11.45338955",
+      "mean_feature_value": "6.31716108676",
+      "mean_signed_contribution_db": "-72.7250577751",
+      "mean_absolute_contribution_db": "72.7250577751",
+      "absolute_contribution_rank": 2
+    },
+    {
+      "group": "all",
+      "nlos_pixels": 31365314,
+      "feature": "log1p_d2d",
+      "mean_coefficient": "3.82538350888",
+      "mean_feature_value": "5.2652955713",
+      "mean_signed_contribution_db": "20.187815078",
+      "mean_absolute_contribution_db": "20.187815078",
+      "absolute_contribution_rank": 3
+    },
+    {
+      "group": "all",
+      "nlos_pixels": 31365314,
+      "feature": "pl_c",
+      "mean_coefficient": "0.104197952821",
+      "mean_feature_value": "131.448862693",
+      "mean_signed_contribution_db": "13.8261264699",
+      "mean_absolute_contribution_db": "18.0776006832",
+      "absolute_contribution_rank": 4
+    },
+    {
+      "group": "all",
+      "nlos_pixels": 31365314,
+      "feature": "density_41",
+      "mean_coefficient": "-30.6157200916",
+      "mean_feature_value": "0.216100389593",
+      "mean_signed_contribution_db": "-6.28734342425",
+      "mean_absolute_contribution_db": "6.3103252626",
+      "absolute_contribution_rank": 5
+    },
+    {
+      "group": "all",
+      "nlos_pixels": 31365314,
+      "feature": "density_41_x_logd",
+      "mean_coefficient": "4.61778755016",
+      "mean_feature_value": "1.1248032423",
+      "mean_signed_contribution_db": "4.94838540748",
+      "mean_absolute_contribution_db": "4.9735702474",
+      "absolute_contribution_rank": 6
+    },
+    {
+      "group": "all",
+      "nlos_pixels": 31365314,
+      "feature": "theta_norm",
+      "mean_coefficient": "-22.9604994662",
+      "mean_feature_value": "0.214598790314",
+      "mean_signed_contribution_db": "-4.45386718753",
+      "mean_absolute_contribution_db": "4.45386718753",
+      "absolute_contribution_rank": 7
+    },
+    {
+      "group": "all",
+      "nlos_pixels": 31365314,
+      "feature": "nlos_41",
+      "mean_coefficient": "3.91610535513",
+      "mean_feature_value": "0.573065687099",
+      "mean_signed_contribution_db": "1.77098228874",
+      "mean_absolute_contribution_db": "3.75158330168",
+      "absolute_contribution_rank": 8
+    },
+    {
+      "group": "all",
+      "nlos_pixels": 31365314,
+      "feature": "nlos_41_x_logd",
+      "mean_coefficient": "-0.509860063952",
+      "mean_feature_value": "3.04002616541",
+      "mean_signed_contribution_db": "-1.18584836712",
+      "mean_absolute_contribution_db": "3.12050934927",
+      "absolute_contribution_rank": 9
+    },
+    {
+      "group": "all",
+      "nlos_pixels": 31365314,
+      "feature": "nlos_15",
+      "mean_coefficient": "1.72630637615",
+      "mean_feature_value": "0.758807485092",
+      "mean_signed_contribution_db": "1.33893584639",
+      "mean_absolute_contribution_db": "1.33893584639",
+      "absolute_contribution_rank": 10
+    },
+    {
+      "group": "all",
+      "nlos_pixels": 31365314,
+      "feature": "nlos_41_x_theta",
+      "mean_coefficient": "-2.24605953072",
+      "mean_feature_value": "0.109704450816",
+      "mean_signed_contribution_db": "-0.345268943472",
+      "mean_absolute_contribution_db": "0.700320944966",
+      "absolute_contribution_rank": 11
+    },
+    {
+      "group": "all",
+      "nlos_pixels": 31365314,
+      "feature": "height_41",
+      "mean_coefficient": "3.65583255189",
+      "mean_feature_value": "0.0354848986727",
+      "mean_signed_contribution_db": "0.0640390808865",
+      "mean_absolute_contribution_db": "0.156832915185",
+      "absolute_contribution_rank": 12
+    },
+    {
+      "group": "all",
+      "nlos_pixels": 31365314,
+      "feature": "density_15",
+      "mean_coefficient": "0.721407784629",
+      "mean_feature_value": "0.122086077676",
+      "mean_signed_contribution_db": "0.0498239628837",
+      "mean_absolute_contribution_db": "0.136856233976",
+      "absolute_contribution_rank": 13
+    },
+    {
+      "group": "all",
+      "nlos_pixels": 31365314,
+      "feature": "height_15",
+      "mean_coefficient": "8.61301715423",
+      "mean_feature_value": "0.0178662132707",
+      "mean_signed_contribution_db": "0.132029974695",
+      "mean_absolute_contribution_db": "0.134233220468",
+      "absolute_contribution_rank": 14
+    }
+  ],
+  "interpretation": {
+    "coefficient_table": "Exact raw-space ridge coefficients; magnitudes are not comparable without feature scale.",
+    "term_audit": "Pixel-weighted pre-clipping applied contributions on valid NLoS test targets; descriptive, not causal."
+  }
+}

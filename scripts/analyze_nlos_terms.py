@@ -1,238 +1,272 @@
-"""Audit the frozen Try-78 attenuation prior on the final Try-80 test cities.
+"""Audit the frozen COST231 NLoS regression on the official final test split.
 
-The script uses the implementation functions from Final_Code_TFG so the paper
-tables describe the deployed formulas rather than a reimplementation. It emits
-the exact per-regime coefficients and pixel-weighted mean feature/contribution
-statistics for NLoS receivers. It also recomputes the headline attenuation
-metrics and the valid-pixel-weighted per-map correlation.
+The script reads the current 14-feature, nine-regime calibration produced by
+``run_conference_attenuation_ablation.py``. It exports exact coefficients and
+pixel-weighted applied-term statistics. Building pixels and ground pixels
+without a valid stored attenuation target are excluded.
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
-import importlib.util
 import json
-import math
 import sys
+import time
 from collections import defaultdict
 from pathlib import Path
+from typing import Dict, Mapping, MutableMapping, Sequence
 
 import h5py
 import numpy as np
 
+from run_conference_attenuation_ablation import compute_cost231_map, final_feature_names
 
-TEST_CITIES = (
-    "Barcelona", "Beijing", "Carcassonne", "Copenhagen", "Halifax",
-    "Jaipur", "Johannesburg", "Key West", "Kuala Lumpur", "Osaka",
-    "Phuket", "Pune", "Surat", "Vancouver",
-)
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_TFG_ROOT = REPO_ROOT.parent
+DEFAULT_HDF5 = DEFAULT_TFG_ROOT / "TFGpractice" / "Datasets" / "CKM_Dataset_270326.h5"
+DEFAULT_REFERENCE_DIR = (
+    DEFAULT_TFG_ROOT
+    / "TFGpractice"
+    / "TFGEightiethTry80"
+    / "scripts"
+    / "recalibrate_priors"
+)
+DEFAULT_ANALYSIS_DIR = (
+    REPO_ROOT
+    / "drafts"
+    / "conference_attenuation_priors"
+    / "data"
+    / "official_split_analysis"
+)
+DEFAULT_CALIBRATION = DEFAULT_ANALYSIS_DIR / "nlos_regime_calibration_official.json"
+FEATURE_INDICES = tuple(range(1, 15))
 
 
-def load_module(path: Path):
-    spec = importlib.util.spec_from_file_location("try80_priors_for_audit", path)
-    if spec is None or spec.loader is None:
-        raise RuntimeError(f"Cannot import {path}")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module
+def _import_reference_modules(reference_dir: Path):
+    sys.path.insert(0, str(reference_dir))
+    try:
+        import run_try78_on_try80_split as official
+        import try78_hybrid_path_loss_reference as hybrid_ref
+        import try78_los_path_loss_prior as los_model
+    finally:
+        sys.path.pop(0)
+    return official, hybrid_ref, los_model
 
 
-def add_group(stats, group: str, features: np.ndarray, coef: np.ndarray) -> None:
+def _fresh_term_stats(n_features: int) -> Dict[str, object]:
+    return {
+        "pixels": 0,
+        "coefficient_sum": np.zeros(n_features, dtype=np.float64),
+        "feature_sum": np.zeros(n_features, dtype=np.float64),
+        "signed_contribution_sum": np.zeros(n_features, dtype=np.float64),
+        "absolute_contribution_sum": np.zeros(n_features, dtype=np.float64),
+    }
+
+
+def _add_term_stats(
+    stats: MutableMapping[str, Dict[str, object]],
+    group: str,
+    features: np.ndarray,
+    coefficients: np.ndarray,
+) -> None:
     n = int(features.shape[0])
     if n == 0:
         return
-    s = np.sum(features, axis=0, dtype=np.float64)
     rec = stats[group]
-    rec["count"] += n
-    rec["feature_sum"] += s
-    rec["coef_weighted_sum"] += n * coef
-    rec["contribution_sum"] += s * coef
-    rec["abs_contribution_sum"] += np.sum(np.abs(features), axis=0, dtype=np.float64) * np.abs(coef)
+    feature_sum = features.sum(axis=0, dtype=np.float64)
+    rec["pixels"] = int(rec["pixels"]) + n
+    rec["coefficient_sum"] = np.asarray(rec["coefficient_sum"]) + n * coefficients
+    rec["feature_sum"] = np.asarray(rec["feature_sum"]) + feature_sum
+    rec["signed_contribution_sum"] = (
+        np.asarray(rec["signed_contribution_sum"]) + feature_sum * coefficients
+    )
+    rec["absolute_contribution_sum"] = (
+        np.asarray(rec["absolute_contribution_sum"])
+        + np.abs(features * coefficients[None, :]).sum(axis=0, dtype=np.float64)
+    )
+
+
+def _fresh_cost_stats() -> Dict[str, float | int]:
+    return {
+        "pixels": 0,
+        "sum_db": 0.0,
+        "min_db": float("inf"),
+        "max_db": float("-inf"),
+        "high_clip_pixels": 0,
+    }
+
+
+def _add_cost_stats(
+    stats: MutableMapping[str, Dict[str, float | int]],
+    group: str,
+    mask: np.ndarray,
+    pl_c: np.ndarray,
+    path_loss_max_db: float,
+) -> None:
+    values = pl_c[mask].astype(np.float64, copy=False)
+    if values.size == 0:
+        return
+    rec = stats[group]
+    rec["pixels"] = int(rec["pixels"]) + int(values.size)
+    rec["sum_db"] = float(rec["sum_db"]) + float(values.sum(dtype=np.float64))
+    rec["min_db"] = min(float(rec["min_db"]), float(values.min()))
+    rec["max_db"] = max(float(rec["max_db"]), float(values.max()))
+    rec["high_clip_pixels"] = int(rec["high_clip_pixels"]) + int(
+        (values >= path_loss_max_db).sum()
+    )
+
+
+def _write_csv(path: Path, rows: Sequence[Mapping[str, object]]) -> None:
+    rows = list(rows)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]) if rows else [])
+        writer.writeheader()
+        writer.writerows(rows)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--hdf5", type=Path,
-        default=Path(r"C:\TFG\TFGAllProgress_Tries_and_Attempts\Datasets\CKM_Dataset_270326.h5"),
-    )
-    parser.add_argument(
-        "--prior-module", type=Path,
-        default=Path(r"C:\TFG\Final_Code_TFG\TFGEightiethTry80_preliminary_code\src\priors_try80.py"),
-    )
-    parser.add_argument(
-        "--los-calibration", type=Path,
-        default=Path(r"C:\TFG\Final_Code_TFG\TFGEightiethTry80_preliminary_code\calibrations\try78_los_two_ray_calibration.json"),
-    )
-    parser.add_argument(
-        "--nlos-calibration", type=Path,
-        default=REPO_ROOT / "drafts" / "conference_attenuation_priors" / "data" / "frozen_nlos_regime_calibration.json",
-    )
-    parser.add_argument(
-        "--out-dir", type=Path,
-        default=REPO_ROOT / "drafts" / "conference_attenuation_priors" / "data",
-    )
-    parser.add_argument("--max-maps", type=int, default=None)
-    parser.add_argument(
-        "--stride", type=int, default=1,
-        help="Audit every Nth test map (deterministic, after city/sample sorting).",
-    )
-    parser.add_argument(
-        "--terms-only", action="store_true",
-        help="Skip prediction metrics and compute only the NLoS term audit.",
-    )
-    parser.add_argument("--log-every", type=int, default=100)
+    parser.add_argument("--hdf5", type=Path, default=DEFAULT_HDF5)
+    parser.add_argument("--reference-dir", type=Path, default=DEFAULT_REFERENCE_DIR)
+    parser.add_argument("--calibration", type=Path, default=DEFAULT_CALIBRATION)
+    parser.add_argument("--out-dir", type=Path, default=DEFAULT_ANALYSIS_DIR)
+    parser.add_argument("--split-seed", type=int, default=42)
+    parser.add_argument("--max-test-maps", type=int, default=None)
+    parser.add_argument("--log-every", type=int, default=250)
     args = parser.parse_args()
 
-    priors = load_module(args.prior_module)
-    calibration = json.loads(args.nlos_calibration.read_text(encoding="utf-8"))
-    names = tuple(calibration["feature_names"])
-    coefs = {key: np.asarray(value, dtype=np.float64)
-             for key, value in calibration["coefficients"].items()}
-    los_cal = None if args.terms_only else priors._load_try78_los_calibration(args.los_calibration)
+    official, hybrid_ref, los_model = _import_reference_modules(args.reference_dir)
+    refs = los_model.enumerate_samples(args.hdf5)
+    _, _, test_refs = official.split_city_holdout_try80(
+        refs, val_ratio=0.15, test_ratio=0.15, split_seed=args.split_seed
+    )
+    if args.max_test_maps is not None:
+        test_refs = test_refs[: args.max_test_maps]
+
+    calibration = json.loads(args.calibration.read_text(encoding="utf-8"))
+    feature_names = tuple(calibration["feature_names"])
+    if feature_names != tuple(final_feature_names(hybrid_ref)):
+        raise ValueError("Frozen calibration feature order does not match the COST231 model")
+    coefficients = {
+        key: np.asarray(value, dtype=np.float64)
+        for key, value in calibration["coefficients"].items()
+    }
+    if any(value.shape != (len(feature_names),) for value in coefficients.values()):
+        raise ValueError("Unexpected coefficient-vector length")
+
+    term_stats = defaultdict(lambda: _fresh_term_stats(len(feature_names)))
+    cost_stats = defaultdict(_fresh_cost_stats)
+    started = time.perf_counter()
+
+    with h5py.File(str(args.hdf5), "r") as handle:
+        for number, ref in enumerate(test_refs, start=1):
+            sample = hybrid_ref.load_hybrid_sample(handle, ref)
+            valid_nlos = sample["valid"] & (sample["los_mask"] == 0)
+            topology_class = hybrid_ref.sample_city_type(sample["topology"])
+            antenna_bin = hybrid_ref.ant_bin(ref.uav_height_m)
+            regime = hybrid_ref.regime_key(topology_class, "NLoS", antenna_bin)
+            coef = coefficients[regime]
+
+            pl_c = compute_cost231_map(ref.uav_height_m, hybrid_ref)
+            features = hybrid_ref.compute_pixel_features(
+                sample["topology"], sample["los_mask"], pl_c, ref.uav_height_m
+            )
+            nlos_features = features[valid_nlos][:, FEATURE_INDICES].astype(
+                np.float64, copy=False
+            )
+            for group in ("all", topology_class, regime):
+                _add_term_stats(term_stats, group, nlos_features, coef)
+                _add_cost_stats(
+                    cost_stats,
+                    group,
+                    valid_nlos,
+                    pl_c,
+                    float(hybrid_ref.PATH_LOSS_MAX_DB),
+                )
+
+            if number % max(args.log_every, 1) == 0 or number == len(test_refs):
+                elapsed = time.perf_counter() - started
+                print(
+                    f"audit [{number}/{len(test_refs)}] "
+                    f"{number / max(elapsed, 1e-9):.2f} maps/s",
+                    flush=True,
+                )
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    stats = defaultdict(lambda: {
-        "count": 0,
-        "feature_sum": np.zeros(len(names), dtype=np.float64),
-        "coef_weighted_sum": np.zeros(len(names), dtype=np.float64),
-        "contribution_sum": np.zeros(len(names), dtype=np.float64),
-        "abs_contribution_sum": np.zeros(len(names), dtype=np.float64),
-    })
+    coefficient_rows = []
+    for regime in sorted(coefficients):
+        topology_class, _, antenna_bin = regime.split("|")
+        for feature, value in zip(feature_names, coefficients[regime]):
+            coefficient_rows.append(
+                {
+                    "regime": regime,
+                    "topology_class": topology_class,
+                    "antenna_bin": antenna_bin,
+                    "feature": feature,
+                    "coefficient": f"{value:.12g}",
+                }
+            )
+    _write_csv(args.out_dir / "nlos_exact_coefficients.csv", coefficient_rows)
 
-    sse = 0.0
-    sae = 0.0
-    valid_count = 0
-    los_sse = 0.0
-    los_count = 0
-    nlos_sse = 0.0
-    nlos_count = 0
-    corr_weighted_sum = 0.0
-    corr_weight = 0
-    map_count = 0
+    term_rows = []
+    for group in sorted(term_stats):
+        rec = term_stats[group]
+        n = int(rec["pixels"])
+        mean_abs = np.asarray(rec["absolute_contribution_sum"]) / max(n, 1)
+        ranks = np.empty(len(feature_names), dtype=np.int64)
+        ranks[np.argsort(-mean_abs)] = np.arange(1, len(feature_names) + 1)
+        for index, feature in enumerate(feature_names):
+            term_rows.append(
+                {
+                    "group": group,
+                    "nlos_pixels": n,
+                    "feature": feature,
+                    "mean_coefficient": f"{np.asarray(rec['coefficient_sum'])[index] / max(n, 1):.12g}",
+                    "mean_feature_value": f"{np.asarray(rec['feature_sum'])[index] / max(n, 1):.12g}",
+                    "mean_signed_contribution_db": f"{np.asarray(rec['signed_contribution_sum'])[index] / max(n, 1):.12g}",
+                    "mean_absolute_contribution_db": f"{mean_abs[index]:.12g}",
+                    "absolute_contribution_rank": int(ranks[index]),
+                }
+            )
+    _write_csv(args.out_dir / "nlos_test_term_audit.csv", term_rows)
 
-    with h5py.File(args.hdf5, "r") as handle:
-        refs = [(city, sample) for city in TEST_CITIES for sample in sorted(handle[city].keys())]
-        refs = refs[:: max(args.stride, 1)]
-        if args.max_maps is not None:
-            refs = refs[: args.max_maps]
-
-        for index, (city, sample_name) in enumerate(refs, start=1):
-            group = handle[city][sample_name]
-            topology = np.asarray(group["topology_map"][...], dtype=np.float32)
-            los_mask = np.asarray(group["los_mask"][...], dtype=np.float32)
-            target = np.asarray(group["path_loss"][...], dtype=np.float32)
-            h_tx = float(np.asarray(group["uav_height"][...]).reshape(-1)[0])
-
-            raw_prior = priors._compute_formula_prior_78(los_mask, h_tx)
-            features = priors._compute_pixel_features_78(topology, los_mask, raw_prior, h_tx)
-            topology_class = priors._sample_city_type_78(topology)
-            antenna_bin = priors.ant_bin(h_tx)
-            key = f"{topology_class}|NLoS|{antenna_bin}"
-            if key not in coefs:
-                raise KeyError(f"No exact NLoS calibration for {key}")
-            coef = coefs[key]
-
-            ground = topology == 0.0
-            valid = ground & np.isfinite(target) & (target >= priors.PATH_LOSS_MIN_DB)
-            is_los = valid & (los_mask > 0.5)
-            is_nlos = valid & (los_mask <= 0.5)
-
-            nlos_features = features[is_nlos].astype(np.float64, copy=False)
-            add_group(stats, "all", nlos_features, coef)
-            add_group(stats, topology_class, nlos_features, coef)
-            add_group(stats, key, nlos_features, coef)
-
-            if not args.terms_only:
-                los_pred = priors._predict_two_ray_map(h_tx, los_cal)
-                nlos_pred = np.clip(features @ coef, priors.PATH_LOSS_MIN_DB, priors.PATH_LOSS_MAX_DB)
-                prediction = np.where(los_mask > 0.5, los_pred, nlos_pred)
-
-                error = prediction[valid].astype(np.float64) - target[valid].astype(np.float64)
-                sse += float(error @ error)
-                sae += float(np.sum(np.abs(error)))
-                valid_count += int(error.size)
-
-                error_los = prediction[is_los].astype(np.float64) - target[is_los].astype(np.float64)
-                los_sse += float(error_los @ error_los)
-                los_count += int(error_los.size)
-                error_nlos = prediction[is_nlos].astype(np.float64) - target[is_nlos].astype(np.float64)
-                nlos_sse += float(error_nlos @ error_nlos)
-                nlos_count += int(error_nlos.size)
-
-                pred_v = prediction[valid].astype(np.float64)
-                target_v = target[valid].astype(np.float64)
-                if pred_v.size >= 2:
-                    pred_v -= pred_v.mean()
-                    target_v -= target_v.mean()
-                    denom = float(np.linalg.norm(pred_v) * np.linalg.norm(target_v))
-                    if denom > 0.0:
-                        corr_weighted_sum += pred_v.size * float((pred_v @ target_v) / denom)
-                        corr_weight += int(pred_v.size)
-            map_count += 1
-
-            if index % args.log_every == 0 or index == len(refs):
-                print(f"audited {index}/{len(refs)} maps", flush=True)
-
-    exact_path = args.out_dir / "nlos_exact_coefficients.csv"
-    with exact_path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(("regime", "topology_class", "antenna_bin", "feature", "coefficient"))
-        for key in sorted(k for k in coefs if "|NLoS|" in k):
-            topology_class, _, antenna_bin = key.split("|")
-            for name, value in zip(names, coefs[key]):
-                writer.writerow((key, topology_class, antenna_bin, name, f"{value:.12g}"))
-
-    audit_path = args.out_dir / "nlos_test_term_audit.csv"
-    with audit_path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
-        writer.writerow((
-            "group", "nlos_pixels", "feature", "mean_coefficient",
-            "mean_feature_value", "mean_signed_contribution_db",
-            "mean_absolute_contribution_db", "absolute_contribution_rank",
-        ))
-        for group_name in sorted(stats):
-            rec = stats[group_name]
-            n = rec["count"]
-            mean_abs = rec["abs_contribution_sum"] / n
-            ranks = np.empty(len(names), dtype=int)
-            ranks[np.argsort(-mean_abs)] = np.arange(1, len(names) + 1)
-            for i, name in enumerate(names):
-                writer.writerow((
-                    group_name, n, name,
-                    f"{rec['coef_weighted_sum'][i] / n:.12g}",
-                    f"{rec['feature_sum'][i] / n:.12g}",
-                    f"{rec['contribution_sum'][i] / n:.12g}",
-                    f"{mean_abs[i]:.12g}", int(ranks[i]),
-                ))
-
-    metrics = {
-        "maps_audited": map_count,
-        "test_map_stride": max(args.stride, 1),
-        "terms_only": args.terms_only,
-        "nlos_pixels_in_term_audit": stats["all"]["count"],
-        "calibration_meta": calibration.get("meta", {}),
-    }
-    if not args.terms_only:
-        metrics.update({
-            "valid_pixels": valid_count,
-            "los_pixels": los_count,
-            "nlos_pixels": nlos_count,
-            "rmse_db": math.sqrt(sse / valid_count),
-            "mae_db": sae / valid_count,
-            "los_rmse_db": math.sqrt(los_sse / los_count),
-            "nlos_rmse_db": math.sqrt(nlos_sse / nlos_count),
-            "map_correlation": corr_weighted_sum / corr_weight,
-            "map_correlation_weight": corr_weight,
-            "definition": "valid-pixel-weighted mean of per-map Pearson correlations",
-        })
-    (args.out_dir / "attenuation_audit_metrics.json").write_text(
-        json.dumps(metrics, indent=2) + "\n", encoding="utf-8"
+    overall_terms = sorted(
+        (row for row in term_rows if row["group"] == "all"),
+        key=lambda row: int(row["absolute_contribution_rank"]),
     )
-    print(json.dumps(metrics, indent=2))
+    overall_cost = cost_stats["all"]
+    n_cost = int(overall_cost["pixels"])
+    summary = {
+        "generated_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "split_contract": {
+            "source": "Try 74/75 compatible split_city_holdout_try80",
+            "split_seed": args.split_seed,
+            "test_maps": len(test_refs),
+            "test_cities": sorted(set(ref.city for ref in test_refs)),
+        },
+        "model": "COST231 NLoS term plus 14-feature regime-specific ridge calibration",
+        "features": list(feature_names),
+        "regimes": sorted(coefficients),
+        "cost231_test_support": {
+            "valid_nlos_pixels": n_cost,
+            "mean_db": float(overall_cost["sum_db"]) / max(n_cost, 1),
+            "min_db": float(overall_cost["min_db"]),
+            "max_db": float(overall_cost["max_db"]),
+            "high_clip_pixels": int(overall_cost["high_clip_pixels"]),
+        },
+        "overall_terms_by_mean_absolute_contribution": overall_terms,
+        "interpretation": {
+            "coefficient_table": "Exact raw-space ridge coefficients; magnitudes are not comparable without feature scale.",
+            "term_audit": "Pixel-weighted pre-clipping applied contributions on valid NLoS test targets; descriptive, not causal.",
+        },
+    }
+    (args.out_dir / "nlos_term_audit_summary.json").write_text(
+        json.dumps(summary, indent=2, allow_nan=False) + "\n",
+        encoding="utf-8",
+    )
+    print(json.dumps(summary["cost231_test_support"], indent=2), flush=True)
 
 
 if __name__ == "__main__":

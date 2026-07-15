@@ -54,7 +54,7 @@ These groups should comfortably exceed the supervisor's 40% rule by substantive 
 ## Work needed before submission
 
 - Add an attenuation-prior ablation: analytic starting structure, height calibration, radial correction, morphology correction, and full prior.
-- Recalibrate the NLoS multilinear model without the strongly collinear $P_0^2$ feature, then compare conditioning, term cancellation, and held-out RMSE against the current artifact.
+- Confirm the frozen standardized NLoS ridge calibration and its held-out RMSE from committed official-split artifacts.
 - Confirm that every table can be regenerated from committed evaluation artifacts.
 - Replace draft venue dates with verified live dates.
 - Confirm author order, affiliations, acknowledgments, and corresponding author.

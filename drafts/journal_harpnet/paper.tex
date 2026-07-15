@@ -474,9 +474,8 @@ amplitude and phase, a height-dependent bias, and a small radial residual table
 are fitted in \SI{5}{m} transmitter-height bins, smoothed, and interpolated at
 deployment. Operationally, these LoS correction terms form a height/radius
 lookup table: it is frozen before testing and is not refitted in an unseen
-city. For NLoS pixels, a conservative envelope of a COST231-shaped urban
-trend and an elevation-dependent A2G term supplies the raw scale
-\cite{cost231,alhourani2014,khawaja_survey}. A multiple linear (multilinear)
+city. For NLoS pixels, a clipped COST231-shaped urban term supplies the raw
+scale \cite{cost231}. A multiple linear (multilinear)
 calibration then combines
 that scale with range, elevation, local building density/height, and local NLoS
 support. A geometric visibility mask selects the branches:
@@ -538,7 +537,7 @@ Table~\ref{tab:prior-only-anchor} reports the final test anchors.
 \toprule
 Target & Overall & LoS & NLoS & Unit \\
 \midrule
-Attenuation & 1.9383 & 1.7519 & 3.5143 & dB \\
+Attenuation & 1.9277 & 1.7370 & 3.5275 & dB \\
 Delay spread & 28.1211 & 27.5119 & 29.6157 & ns \\
 Angular spread & 13.8162 & 15.3751 & 8.6614 & deg \\
 \bottomrule
@@ -1023,7 +1022,7 @@ that the residual model improves the frozen prior.}
 \toprule
 Target & Model RMSE & Prior RMSE & \(\Delta\)RMSE & Model MAE & Unit \\
 \midrule
-Attenuation & 1.6947 & 1.9383 & -0.2436 & 0.9772 & dB \\
+Attenuation & 1.6947 & 1.9277 & -0.2330 & 0.9772 & dB \\
 Delay spread & 26.6882 & 28.1211 & -1.4329 & 7.8160 & ns \\
 Angular spread & 11.5253 & 13.8162 & -2.2909 & 4.8899 & deg \\
 \bottomrule
@@ -1040,7 +1039,7 @@ Angular spread & 11.5253 & 13.8162 & -2.2909 & 4.8899 & deg \\
 \toprule
 Target & Model & Prior & \(\Delta\) \\
 \midrule
-Attenuation & 0.961055 & 0.947710 & +0.013345 \\
+Attenuation & 0.961055 & 0.948119 & +0.012936 \\
 Delay spread & 0.414692 & 0.306026 & +0.108666 \\
 Angular spread & 0.581783 & 0.348713 & +0.233070 \\
 \bottomrule
@@ -1067,8 +1066,8 @@ Thus the residual model is doing visible map structure recovery even when the
 unit aware RMSE gain looks modest.
 
 \paragraph{Channel attenuation}
-The frozen path loss prior is already strong, reaching \SI{1.9383}{dB} RMSE
-and \SI{1.2319}{dB} MAE on the final test split. \textsc{HARP-Net CKM}
+The frozen path loss prior is already strong, reaching \SI{1.9277}{dB} RMSE
+and \SI{1.2151}{dB} MAE on the final test split. \textsc{HARP-Net CKM}
 reduces these to \SI{1.6947}{dB} and \SI{0.9772}{dB}. This is the most
 uniform gain: the residual model improves both squared error and typical
 absolute error, and it improves both LoS and NLoS pixels in
@@ -1118,8 +1117,8 @@ in the physically hard NLoS subset.
 \toprule
 Target & Scope & Model & Prior & \(\Delta\) \\
 \midrule
-Atten. & LoS & 1.5175 & 1.7519 & -0.2344 \\
-Atten. & NLoS & 3.1596 & 3.5143 & -0.3547 \\
+Atten. & LoS & 1.5175 & 1.7370 & -0.2195 \\
+Atten. & NLoS & 3.1596 & 3.5275 & -0.3679 \\
 DS & LoS & 25.6137 & 27.5119 & -1.8983 \\
 DS & NLoS & 29.2464 & 29.6157 & -0.3693 \\
 AS & LoS & 12.5270 & 15.3751 & -2.8481 \\
@@ -1282,7 +1281,7 @@ received power, while the original \SI{5}{dB} target would allow a
 \(3.16\times\) factor. A \SI{5}{dB} error is therefore not small near a
 coverage edge: it can change outage, link margin, MCS or handover decisions.
 The final attenuation error is much smaller and also improves a strong
-\SI{1.9383}{dB} frozen prior.
+\SI{1.9277}{dB} frozen prior.
 
 For delay spread, time can be converted into an equivalent excess propagation
 path length,
@@ -1493,10 +1492,9 @@ reflected-path geometry, and morphology features accordingly. Evaluation will
 separate relief classes and test whether the frozen priors and residual model
 transfer without recalibration. Field measurements remain necessary to
 separate simulator fidelity from over-the-air validity. The NLoS calibration
-will also remove its current squared raw-prior term $P_0^2$ and refit all
-regime weights; the present audit shows large opposing contributions from
-$P_0^2$, $P_0$, and the intercept, so this change targets conditioning and
-interpretability rather than merely reducing the feature count.
+uses standardized ridge regression with training-only topology and
+transmitter-height regimes; future work will test whether the same compact
+feature family transfers to non-flat terrain.
 
 \section{Code Availability}
 
@@ -1523,8 +1521,8 @@ The calibrated priors combine coherent two-ray LoS path loss, height dependent
 calibration, morphology aware NLoS modelling, visibility switching, and log
 domain DS/AS spread statistics. These anchors explain most radial, visibility,
 height, and spread scale structure; the residual model improves them by
-\SI{0.2436}{dB}, \SI{1.4329}{ns}, and \(2.2909^\circ\) RMSE on the held out
-test set. It also improves map correlation from 0.947710 to 0.961055 for
+\SI{0.2330}{dB}, \SI{1.4329}{ns}, and \(2.2909^\circ\) RMSE on the held out
+test set. It also improves map correlation from 0.948119 to 0.961055 for
 attenuation, from 0.306026 to 0.414692 for delay spread, and from 0.348713 to
 0.581783 for angular spread. For the two spread targets this is a relative
 MapCorr gain of about \(36\%\) and \(67\%\), respectively, both above the

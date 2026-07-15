@@ -5,7 +5,7 @@ Private working repository for papers derived from the HARP-Net CKM thesis. The 
 ## Current manuscripts
 
 - `drafts/conference_attenuation_priors/`: six-page IEEE conference/workshop draft focused only on the height-aware attenuation priors.
-- `drafts/journal_harpnet/`: 10--13-page-target journal extension covering the multi-target HARP-Net CKM residual model, delay spread, angular spread, diagnostics, and runtime. The attenuation prior is intentionally summarized rather than re-derived.
+- `drafts/journal_harpnet/`: 10--13-page-target journal extension covering the multi-target HARP-Net CKM residual model, delay spread, angular spread, diagnostics, and runtime. It will apply analogous interpretable prior techniques to the two spread quantities, while the attenuation prior is intentionally summarized rather than re-derived.
 
 Both drafts explicitly state a newly recorded limitation: all current simulations assume flat terrain. Follow-up work will incorporate non-flat terrain and test how terrain relief changes visibility, prior calibration, and generalization.
 
@@ -16,7 +16,8 @@ Both drafts explicitly state a newly recorded limitation: all current simulation
 - `style/genia_globecom_style_guide.md`: an evidence-based writing and formatting guide distilled from archived papers and the supplied GLOBECOM LaTeX sources. It describes reusable traits; it does not copy wording.
 - `references/`: openly accessible study copies, official venue calls, supplied `.tex`/`.bib` examples, source URLs, page counts, and checksums.
 - `scripts/build_all.ps1`: local LaTeX build helper.
-- `scripts/analyze_nlos_terms.py`: reproducible audit of the NLoS multilinear-regression coefficients, feature means, term contributions, and map-correlation definition.
+- `scripts/run_conference_attenuation_ablation.py`: official split COST231 NLoS recalibration, analytical ablation, per-city and height metrics, city bootstrap, ground-only visibility accounting, and runtime measurement.
+- `scripts/analyze_nlos_terms.py`: exact coefficient export and full-test applied-term audit for the frozen NLoS regressions.
 - `scripts/generate_conference_nlos_figure.py`: regenerates the LoS/NLoS comparison directly from the frozen priors and an unseen Vancouver test map.
 
 ## Build

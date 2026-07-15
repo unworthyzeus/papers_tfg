@@ -6,7 +6,6 @@ data visualization of the deployed artifact, not an illustrative redraw.
 
 from __future__ import annotations
 
-import importlib.util
 import json
 import sys
 from pathlib import Path
@@ -17,25 +16,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import BoundaryNorm, ListedColormap
 
+from run_conference_attenuation_ablation import compute_cost231_map
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-HDF5_PATH = Path(r"C:\TFG\TFGAllProgress_Tries_and_Attempts\Datasets\CKM_Dataset_270326.h5")
-PRIOR_MODULE = Path(r"C:\TFG\Final_Code_TFG\TFGEightiethTry80_preliminary_code\src\priors_try80.py")
-CALIBRATION = REPO_ROOT / "drafts" / "conference_attenuation_priors" / "data" / "frozen_nlos_regime_calibration.json"
-LOS_CALIBRATION = Path(r"C:\TFG\Final_Code_TFG\TFGEightiethTry80_preliminary_code\calibrations\try78_los_two_ray_calibration.json")
+HDF5_PATH = Path(r"C:\TFG\TFGpractice\Datasets\CKM_Dataset_270326.h5")
+REFERENCE_DIR = Path(r"C:\TFG\TFGpractice\TFGEightiethTry80\scripts\recalibrate_priors")
+CALIBRATION = REPO_ROOT / "drafts" / "conference_attenuation_priors" / "data" / "official_split_analysis" / "nlos_regime_calibration_official.json"
+LOS_CALIBRATION = Path(r"C:\TFG\TFGpractice\TFGSeventyEighthTry78\hybrid_out_try80_split\calibrations\try78_los_two_ray_calibration_try80split.json")
 OUTPUT = REPO_ROOT / "drafts" / "conference_attenuation_priors" / "figures" / "nlos_heldout_example.png"
 CITY = "Vancouver"
 SAMPLE = "sample_15262"
-
-
-def load_module(path: Path):
-    spec = importlib.util.spec_from_file_location("try80_priors_for_figure", path)
-    if spec is None or spec.loader is None:
-        raise RuntimeError(f"Cannot import {path}")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module
 
 
 def masked(values: np.ndarray, keep: np.ndarray) -> np.ma.MaskedArray:
@@ -43,13 +34,16 @@ def masked(values: np.ndarray, keep: np.ndarray) -> np.ma.MaskedArray:
 
 
 def main() -> None:
-    priors = load_module(PRIOR_MODULE)
+    sys.path.insert(0, str(REFERENCE_DIR))
+    import try78_hybrid_path_loss_reference as priors
+    import try78_los_path_loss_prior as los_model
+
     calibration = json.loads(CALIBRATION.read_text(encoding="utf-8"))
     coefficients = {
         key: np.asarray(value, dtype=np.float64)
         for key, value in calibration["coefficients"].items()
     }
-    los_calibration = priors._load_try78_los_calibration(LOS_CALIBRATION)
+    _, los_calibration = los_model.load_calibration(LOS_CALIBRATION)
 
     with h5py.File(HDF5_PATH, "r") as handle:
         group = handle[CITY][SAMPLE]
@@ -58,16 +52,16 @@ def main() -> None:
         target = np.asarray(group["path_loss"][...], dtype=np.float32)
         h_tx = float(np.asarray(group["uav_height"][...]).reshape(-1)[0])
 
-    raw = priors._compute_formula_prior_78(los_mask, h_tx)
-    features = priors._compute_pixel_features_78(topology, los_mask, raw, h_tx)
-    topology_class = priors._sample_city_type_78(topology)
+    raw = compute_cost231_map(h_tx, priors)
+    features = priors.compute_pixel_features(topology, los_mask, raw, h_tx)
+    topology_class = priors.sample_city_type(topology)
     antenna_bin = priors.ant_bin(h_tx)
     key = f"{topology_class}|NLoS|{antenna_bin}"
     coef = coefficients[key]
     nlos_prior = np.clip(
-        features @ coef, priors.PATH_LOSS_MIN_DB, priors.PATH_LOSS_MAX_DB
+        features[..., 1:] @ coef, priors.PATH_LOSS_MIN_DB, priors.PATH_LOSS_MAX_DB
     )
-    los_prior = priors._predict_two_ray_map(h_tx, los_calibration)
+    los_prior = los_model.predict_two_ray_map(h_tx, los_calibration)
 
     ground = topology == 0.0
     valid = ground & np.isfinite(target) & (target >= priors.PATH_LOSS_MIN_DB)
@@ -120,7 +114,7 @@ def main() -> None:
         masked(raw, nlos), origin="lower", extent=extent,
         cmap=attenuation_cmap, vmin=75, vmax=145,
     )
-    axes[1, 0].set_title(r"(e) Raw NLoS envelope $P_0$ [dB]")
+    axes[1, 0].set_title(r"(e) COST231 term $\mathrm{PL}_{C}$ [dB]")
 
     axes[1, 1].imshow(
         masked(target, nlos), origin="lower", extent=extent,

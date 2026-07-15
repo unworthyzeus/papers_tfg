@@ -1,0 +1,52 @@
+{
+  "generated_local_date": "2026-07-15",
+  "hardware": {
+    "processor": "AMD Ryzen 5 5600X 6-Core Processor",
+    "physical_cores": 6,
+    "logical_processors": 12,
+    "gpu": "AMD Radeon RX 7800 XT",
+    "gpu_used": false
+  },
+  "software": "MATLAB R2024b Update 1",
+  "configuration": {
+    "city": "Barcelona",
+    "maps": 5,
+    "seed": 20260715,
+    "transmitter_heights_per_layout": 1,
+    "receiver_grid_resolution_m": 1,
+    "receiver_height_m": 1.5,
+    "frequency_hz": 7125000000,
+    "max_reflections": 1,
+    "max_diffractions": 0,
+    "angular_separation": "high",
+    "outputs": [
+      "attenuation",
+      "delay_spread",
+      "angular_spread"
+    ]
+  },
+  "timing_seconds": [
+    93.5126724,
+    260.3095472,
+    166.7178514,
+    91.4517301,
+    102.2887378
+  ],
+  "mean_s_per_map": 142.85610778,
+  "median_s_per_map": 102.2887378,
+  "p95_s_per_map": 241.59120804,
+  "min_s_per_map": 91.4517301,
+  "max_s_per_map": 260.3095472,
+  "source_sha256": "A614F6ACF3D299EA80E7DE3FE0E70F6CA72961DC5E742AC3EDAE76A9A1795866",
+  "city_data_sha256": "3C251EFB58383B863FFDB17E5B7C36EDD00936B5C789C70BFC0E5A025C0BA39B",
+  "visibility_repeat_audit": {
+    "conditions": 5,
+    "receiver_comparisons": 742392,
+    "bit_differences": 0,
+    "all_equal": true,
+    "identity_key": "city geometry, transmitter position and height, receiver grid, and ray-tracing settings"
+  },
+  "prior_core_median_s": 0.06019575000027544,
+  "raw_median_wall_clock_ratio_vs_stored_rt_mask_prior": 1699.268433394915,
+  "comparison_note": "Both this benchmark and the analytical prior use the same CPU, full 1 m spatial resolution, and GPU execution disabled. Output scope and timing boundaries differ, so the raw wall-clock ratios are not like-for-like algorithmic speedups."
+}
