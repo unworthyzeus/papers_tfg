@@ -173,16 +173,16 @@ height metadata of one released realization.
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=\textwidth]{figures/ckm_dataset_real_sample.pdf}
-\caption{One released Barcelona realization at
-$h_{\mathrm{tx}}=\SI{69.4}{m}$. At left, transmitter height is scalar metadata
-measured above ground. Each sample receives one label from both topology
-partitions: the three-class label routes the attenuation model, whereas the
-six-class label routes delay and angular spread models. In this sample, the
-labels are \texttt{dense\_highrise} for attenuation and
-\texttt{dense\_block\_midrise} for spread. The panels show the stored building
-height, building mask, LoS, attenuation, delay spread, and angular spread.
-Crosses mark the centered transmitter. Gray areas indicate buildings and are
-excluded from metric computation.}
+\caption{One released Barcelona realization (\texttt{sample\_02806}) at
+$h_{\mathrm{tx}}=\SI{69.4}{m}$. The left illustration shows the UAV above six
+aligned $513\times513$ rasters; $h_{\mathrm{tx}}$ is measured from ground, and
+the rays terminate at receiver-grid intersections. The three-class label routes
+attenuation and the six-class label routes delay and angular spread; in this
+sample they are \texttt{dense\_highrise} and
+\texttt{dense\_block\_midrise}, respectively. The panels show building height,
+building mask, LoS, attenuation, delay spread, and angular spread. Crosses mark
+the centered transmitter. Gray areas indicate buildings and are excluded from
+metric computation.}
 \label{fig:dataset-realization}
 \vspace{-6pt}
 \end{figure*}

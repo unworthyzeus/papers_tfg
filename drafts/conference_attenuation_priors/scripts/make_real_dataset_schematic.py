@@ -41,22 +41,6 @@ def scalar_text(dataset: h5py.Dataset) -> str:
     return str(value)
 
 
-def topology_display(value: object) -> str:
-    labels = {
-        "open_lowrise": "open, low rise",
-        "mixed_midrise": "mixed, mid rise",
-        "dense_highrise": "dense, high rise",
-        "open_sparse_lowrise": "open sparse, low rise",
-        "open_sparse_vertical": "open sparse, vertical",
-        "mixed_compact_lowrise": "mixed compact, low rise",
-        "mixed_compact_midrise": "mixed compact, mid rise",
-        "dense_block_midrise": "dense blocks, mid rise",
-        "dense_block_highrise": "dense blocks, high rise",
-    }
-    raw = str(value)
-    return labels.get(raw, raw.replace("_", " "))
-
-
 def load_sample(path: Path, city: str, sample: str) -> dict[str, object]:
     with h5py.File(path, "r") as handle:
         group = handle[city][sample]
@@ -122,13 +106,11 @@ def draw_drone(ax: plt.Axes, cx: float, cy: float) -> None:
     ax.plot([cx, cx], [cy - 0.015, cy - 0.04], color=color, lw=1.0, zorder=6)
 
 
-def draw_context(ax: plt.Axes, data: dict[str, object], city: str, sample: str) -> None:
+def draw_context(ax: plt.Axes) -> None:
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
+    ax.set_facecolor("white")
     ax.axis("off")
-
-    ax.text(0.5, 0.965, "ONE DATASET SAMPLE", ha="center", va="top", fontsize=12, fontweight="bold")
-    ax.text(0.5, 0.918, f"{city} · {sample.replace('_', ' ')}", ha="center", va="top", fontsize=8.2, color="#4b5563")
 
     plane = np.array([[0.08, 0.30], [0.83, 0.30], [0.96, 0.56], [0.21, 0.56]])
     ax.add_patch(
@@ -136,11 +118,13 @@ def draw_context(ax: plt.Axes, data: dict[str, object], city: str, sample: str) 
             plane, closed=True, facecolor="#fbfcfd", edgecolor="#52606d", linewidth=0.9, zorder=0
         )
     )
-    for fraction in np.linspace(0.12, 0.88, 7):
+    depth_fractions = np.linspace(0.12, 0.88, 7)
+    lateral_fractions = np.linspace(0.08, 0.92, 8)
+    for fraction in depth_fractions:
         a = plane[0] * (1 - fraction) + plane[3] * fraction
         b = plane[1] * (1 - fraction) + plane[2] * fraction
         ax.plot([a[0], b[0]], [a[1], b[1]], color="#c8d0d7", lw=0.45, zorder=0.5)
-    for fraction in np.linspace(0.08, 0.92, 8):
+    for fraction in lateral_fractions:
         a = plane[0] * (1 - fraction) + plane[1] * fraction
         b = plane[3] * (1 - fraction) + plane[2] * fraction
         ax.plot([a[0], b[0]], [a[1], b[1]], color="#c8d0d7", lw=0.45, zorder=0.5)
@@ -150,9 +134,14 @@ def draw_context(ax: plt.Axes, data: dict[str, object], city: str, sample: str) 
     draw_building(ax, 0.55, 0.39, 0.12, 0.11)
     draw_building(ax, 0.73, 0.38, 0.11, 0.24)
 
-    drone_x, drone_y = 0.53, 0.77
+    drone_x, drone_y = 0.53, 0.80
     draw_drone(ax, drone_x, drone_y)
-    ray_targets = [(0.15, 0.33), (0.38, 0.34), (0.58, 0.34), (0.85, 0.35)]
+    receiver_depth = depth_fractions[0]
+    ray_targets = []
+    for lateral in lateral_fractions[[0, 2, 4, 7]]:
+        bottom = plane[0] * (1 - lateral) + plane[1] * lateral
+        top = plane[3] * (1 - lateral) + plane[2] * lateral
+        ray_targets.append(bottom * (1 - receiver_depth) + top * receiver_depth)
     for target_x, target_y in ray_targets:
         ax.plot(
             [drone_x, target_x], [drone_y - 0.04, target_y],
@@ -160,7 +149,6 @@ def draw_context(ax: plt.Axes, data: dict[str, object], city: str, sample: str) 
         )
         ax.add_patch(Circle((target_x, target_y), 0.008, color="#1f2933", zorder=5))
 
-    h_tx = float(data["uav_height"])
     ax.plot([drone_x + 0.06, 0.91], [drone_y, drone_y], color="#6b7280", lw=0.55, ls=":")
     ax.plot([0.84, 0.91], [0.315, 0.315], color="#6b7280", lw=0.55, ls=":")
     ax.annotate(
@@ -169,50 +157,13 @@ def draw_context(ax: plt.Axes, data: dict[str, object], city: str, sample: str) 
         xytext=(0.91, 0.315),
         arrowprops={"arrowstyle": "<->", "color": "#1f2933", "lw": 0.9},
     )
-    ax.text(
-        0.69,
-        0.83,
-        f"Tx height above ground\n{h_tx:.1f} m",
-        ha="left",
-        va="center",
-        fontsize=7.7,
-        color="#1f2933",
-    )
+    ax.text(0.925, 0.555, r"$h_{\mathrm{tx}}$", rotation=90, ha="left", va="center", fontsize=8.2)
 
     layer_base = np.array([[0.14, 0.12], [0.82, 0.12], [0.91, 0.20], [0.23, 0.20]])
     for layer in range(6):
         offset = layer * 0.018
         poly = layer_base + np.array([0.0, offset])
         ax.add_patch(Polygon(poly, closed=True, facecolor="white", edgecolor="#1f2933", linewidth=0.8))
-    ax.text(
-        0.52,
-        0.096,
-        "Six aligned 513 × 513 rasters. Classes in this sample:",
-        ha="center",
-        va="center",
-        fontsize=7.6,
-    )
-
-    topology_3 = topology_display(data["topology_3_class"])
-    topology_6 = topology_display(data["topology_6_class"])
-    ax.text(
-        0.5,
-        0.052,
-        f"Attenuation (1 of 3): {topology_3}",
-        ha="center",
-        va="center",
-        fontsize=6.9,
-        color="#4b5563",
-    )
-    ax.text(
-        0.5,
-        0.010,
-        f"Spread (1 of 6): {topology_6}",
-        ha="center",
-        va="bottom",
-        fontsize=6.9,
-        color="#4b5563",
-    )
 
 
 def finite_limits(values: np.ndarray, valid_mask: np.ndarray, low: float, high: float) -> tuple[float, float]:
@@ -263,7 +214,7 @@ def build_figure(data: dict[str, object], city: str, sample: str) -> plt.Figure:
     fig = plt.figure(figsize=(15.0, 5.0), facecolor="white")
     outer = fig.add_gridspec(1, 2, width_ratios=[1.00, 1.85], wspace=0.05)
     context_ax = fig.add_subplot(outer[0, 0])
-    draw_context(context_ax, data, city, sample)
+    draw_context(context_ax)
 
     right = outer[0, 1].subgridspec(2, 3, wspace=0.20, hspace=0.38)
     axes = [fig.add_subplot(right[row, col]) for row in range(2) for col in range(3)]
@@ -330,15 +281,6 @@ def build_figure(data: dict[str, object], city: str, sample: str) -> plt.Figure:
         continuous=True,
     )
 
-    fig.text(
-        0.70,
-        0.017,
-        "Crosses mark the central transmitter pixel; gray areas indicate buildings and are excluded from metric computation.",
-        ha="center",
-        va="bottom",
-        fontsize=7.4,
-        color="#4b5563",
-    )
     return fig
 
 
@@ -348,9 +290,15 @@ def main() -> None:
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     figure = build_figure(data, args.city, args.sample)
-    figure.savefig(output, dpi=args.dpi, bbox_inches="tight", pad_inches=0.04)
+    figure.savefig(
+        output, dpi=args.dpi, bbox_inches="tight", pad_inches=0.04,
+        facecolor="white", transparent=False,
+    )
     pdf_output = output.with_suffix(".pdf")
-    figure.savefig(pdf_output, bbox_inches="tight", pad_inches=0.04)
+    figure.savefig(
+        pdf_output, bbox_inches="tight", pad_inches=0.04,
+        facecolor="white", transparent=False,
+    )
     plt.close(figure)
     print(output)
     print(pdf_output)
