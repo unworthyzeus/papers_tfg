@@ -81,14 +81,18 @@ def draw_building(ax: plt.Axes, x: float, y: float, w: float, h: float) -> None:
         facecolor="#d9e8f3",
         edgecolor="#31475b",
         linewidth=0.8,
+        zorder=2,
     )
-    front = Rectangle((x, y), w, h, facecolor="#edf4f8", edgecolor="#31475b", linewidth=0.8)
+    front = Rectangle(
+        (x, y), w, h, facecolor="#edf4f8", edgecolor="#31475b", linewidth=0.8, zorder=2
+    )
     side = Polygon(
         [(x + w, y), (x + w + depth, y + depth), (x + w + depth, y + h + depth), (x + w, y + h)],
         closed=True,
         facecolor="#b8d4e7",
         edgecolor="#31475b",
         linewidth=0.8,
+        zorder=2,
     )
     ax.add_patch(front)
     ax.add_patch(side)
@@ -99,16 +103,23 @@ def draw_building(ax: plt.Axes, x: float, y: float, w: float, h: float) -> None:
         for col in range(cols):
             wx = x + 0.025 + col * max(0.036, (w - 0.05) / cols)
             wy = y + 0.025 + row * max(0.055, (h - 0.05) / rows)
-            ax.add_patch(Rectangle((wx, wy), 0.015, 0.023, facecolor="#4f86b5", edgecolor="none"))
+            ax.add_patch(
+                Rectangle((wx, wy), 0.015, 0.023, facecolor="#4f86b5", edgecolor="none", zorder=3)
+            )
 
 
 def draw_drone(ax: plt.Axes, cx: float, cy: float) -> None:
     color = "#1f2933"
-    ax.add_patch(Rectangle((cx - 0.035, cy - 0.015), 0.07, 0.03, facecolor="white", edgecolor=color, lw=1.0))
+    ax.add_patch(
+        Rectangle(
+            (cx - 0.035, cy - 0.015), 0.07, 0.03,
+            facecolor="white", edgecolor=color, lw=1.0, zorder=6,
+        )
+    )
     for dx, dy in [(-0.065, 0.03), (0.065, 0.03), (-0.065, -0.03), (0.065, -0.03)]:
-        ax.plot([cx, cx + dx], [cy, cy + dy], color=color, lw=1.0)
-        ax.add_patch(Circle((cx + dx, cy + dy), 0.027, fill=False, edgecolor=color, lw=1.0))
-    ax.plot([cx, cx], [cy - 0.015, cy - 0.04], color=color, lw=1.0)
+        ax.plot([cx, cx + dx], [cy, cy + dy], color=color, lw=1.0, zorder=6)
+        ax.add_patch(Circle((cx + dx, cy + dy), 0.027, fill=False, edgecolor=color, lw=1.0, zorder=6))
+    ax.plot([cx, cx], [cy - 0.015, cy - 0.04], color=color, lw=1.0, zorder=6)
 
 
 def draw_context(ax: plt.Axes, data: dict[str, object], city: str, sample: str) -> None:
@@ -120,15 +131,19 @@ def draw_context(ax: plt.Axes, data: dict[str, object], city: str, sample: str) 
     ax.text(0.5, 0.918, f"{city} · {sample.replace('_', ' ')}", ha="center", va="top", fontsize=8.2, color="#4b5563")
 
     plane = np.array([[0.08, 0.30], [0.83, 0.30], [0.96, 0.56], [0.21, 0.56]])
-    ax.add_patch(Polygon(plane, closed=True, facecolor="#fbfcfd", edgecolor="#52606d", linewidth=0.9))
+    ax.add_patch(
+        Polygon(
+            plane, closed=True, facecolor="#fbfcfd", edgecolor="#52606d", linewidth=0.9, zorder=0
+        )
+    )
     for fraction in np.linspace(0.12, 0.88, 7):
         a = plane[0] * (1 - fraction) + plane[3] * fraction
         b = plane[1] * (1 - fraction) + plane[2] * fraction
-        ax.plot([a[0], b[0]], [a[1], b[1]], color="#c8d0d7", lw=0.45)
+        ax.plot([a[0], b[0]], [a[1], b[1]], color="#c8d0d7", lw=0.45, zorder=0.5)
     for fraction in np.linspace(0.08, 0.92, 8):
         a = plane[0] * (1 - fraction) + plane[1] * fraction
         b = plane[3] * (1 - fraction) + plane[2] * fraction
-        ax.plot([a[0], b[0]], [a[1], b[1]], color="#c8d0d7", lw=0.45)
+        ax.plot([a[0], b[0]], [a[1], b[1]], color="#c8d0d7", lw=0.45, zorder=0.5)
 
     draw_building(ax, 0.17, 0.40, 0.13, 0.13)
     draw_building(ax, 0.35, 0.36, 0.10, 0.20)
@@ -139,8 +154,11 @@ def draw_context(ax: plt.Axes, data: dict[str, object], city: str, sample: str) 
     draw_drone(ax, drone_x, drone_y)
     ray_targets = [(0.15, 0.33), (0.38, 0.34), (0.58, 0.34), (0.85, 0.35)]
     for target_x, target_y in ray_targets:
-        ax.plot([drone_x, target_x], [drone_y - 0.04, target_y], color="#b4534b", lw=0.7, alpha=0.75)
-        ax.add_patch(Circle((target_x, target_y), 0.008, color="#1f2933"))
+        ax.plot(
+            [drone_x, target_x], [drone_y - 0.04, target_y],
+            color="#b4534b", lw=0.7, alpha=0.75, zorder=4,
+        )
+        ax.add_patch(Circle((target_x, target_y), 0.008, color="#1f2933", zorder=5))
 
     h_tx = float(data["uav_height"])
     ax.plot([drone_x + 0.06, 0.91], [drone_y, drone_y], color="#6b7280", lw=0.55, ls=":")
@@ -152,14 +170,13 @@ def draw_context(ax: plt.Axes, data: dict[str, object], city: str, sample: str) 
         arrowprops={"arrowstyle": "<->", "color": "#1f2933", "lw": 0.9},
     )
     ax.text(
-        0.77,
+        0.69,
         0.83,
         f"Tx height above ground\n{h_tx:.1f} m",
-        ha="center",
+        ha="left",
         va="center",
         fontsize=7.7,
         color="#1f2933",
-        bbox={"boxstyle": "round,pad=0.18", "facecolor": "white", "edgecolor": "none", "alpha": 0.92},
     )
 
     layer_base = np.array([[0.14, 0.12], [0.82, 0.12], [0.91, 0.20], [0.23, 0.20]])
@@ -167,26 +184,33 @@ def draw_context(ax: plt.Axes, data: dict[str, object], city: str, sample: str) 
         offset = layer * 0.018
         poly = layer_base + np.array([0.0, offset])
         ax.add_patch(Polygon(poly, closed=True, facecolor="white", edgecolor="#1f2933", linewidth=0.8))
-    ax.text(0.52, 0.100, "Six aligned spatial layers, each 513 × 513", ha="center", va="center", fontsize=8.2)
+    ax.text(
+        0.52,
+        0.096,
+        "Six aligned 513 × 513 rasters. Classes in this sample:",
+        ha="center",
+        va="center",
+        fontsize=7.6,
+    )
 
     topology_3 = topology_display(data["topology_3_class"])
     topology_6 = topology_display(data["topology_6_class"])
     ax.text(
         0.5,
-        0.057,
-        f"Attenuation class (1 of 3): {topology_3}",
+        0.052,
+        f"Attenuation (1 of 3): {topology_3}",
         ha="center",
         va="center",
-        fontsize=7.0,
+        fontsize=6.9,
         color="#4b5563",
     )
     ax.text(
         0.5,
-        0.015,
-        f"Spread class (1 of 6): {topology_6}",
+        0.010,
+        f"Spread (1 of 6): {topology_6}",
         ha="center",
         va="bottom",
-        fontsize=7.0,
+        fontsize=6.9,
         color="#4b5563",
     )
 
