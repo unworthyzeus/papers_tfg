@@ -251,20 +251,27 @@ and `n_41` is derived from the supplied visibility map.
 
 ### Topology interpretation
 
-The present ablation supports the importance of 41 pixel local context. It
-does not support describing topology partitioning as the second dominant
-component: removing topology routing causes only a modest change once the
-other spatial and visibility features remain. The stronger statement is:
+The dedicated final-test routing ablation now compares the same calibrated
+feature model with global, height-only, topology-only, and complete topology
+plus height routing. NLoS RMSE is 3.5568 dB, 3.5505 dB, 3.5296 dB, and
+3.5275 dB, respectively. Topology-only routing therefore retains about 92.9%
+of the complete routing improvement over one global calibration. This supports
+topology as the dominant partition variable and transmitter height as a
+smaller refinement.
 
-> The 41 pixel context is the most informative local scale. Regime specific
-> calibration provides a smaller additional adjustment, while much of the
-> apparent morphology dependence is already encoded by the supplied
-> visibility map and local descriptors.
+The raw coefficient tables provide complementary evidence: several slopes and
+the intercept change substantially across topology classes, and the COST231
+coefficient even changes sign at middle transmitter height. Because regressors
+are correlated and differently scaled, no single coefficient should be read as
+a causal feature-importance score. The cross-topology changes do show that one
+global coefficient vector would combine distinct propagation regimes.
 
-If topology partitioning is to become a headline result, add a dedicated
-ablation that compares the same eight features with global, height only,
-topology only, and nine regime calibration, and report NLoS metrics rather
-than relying on the LoS dominated aggregate.
+The supported statement is:
+
+> Topology is the dominant NLoS calibration partition. Topology-only routing
+> nearly matches the complete topology and height calibration, while the
+> 41 pixel context is the most informative local morphology scale inside each
+> regime.
 
 ### Role of deep learning
 

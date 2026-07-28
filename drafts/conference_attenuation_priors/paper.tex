@@ -1,6 +1,6 @@
 % !TeX program = pdflatex
 % !BIB program = bibtex
-\documentclass[10pt,conference]{IEEEtran}
+\documentclass[10pt,conference,letterpaper]{IEEEtran}
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -17,13 +17,13 @@
 \urlstyle{same}
 \sisetup{detect-all=true}
 \hypersetup{
-  pdftitle={Height-Aware Attenuation Priors for Dense UAV Channel Knowledge Maps},
-  pdfauthor={Guillem Moreno Garcia, Evgenii Vinogradov, Sergi Abadal}
+  pdftitle={FR3 UAV Channel Knowledge Maps: A Dataset and an Interpretable Attenuation Model},
+  pdfauthor={Guillem Moreno Garcia, Sergi Abadal, Evgenii Vinogradov}
 }
 
-\title{Height-Aware Attenuation Priors for Dense UAV Channel Knowledge Maps}
+\title{FR3 UAV Channel Knowledge Maps: A Dataset and an Interpretable Attenuation Model}
 
-\author{\IEEEauthorblockN{Guillem Moreno Garcia, Evgenii Vinogradov, Sergi Abadal}
+\author{\IEEEauthorblockN{Guillem Moreno Garcia, Sergi Abadal, Evgenii Vinogradov}
 \IEEEauthorblockA{Universitat Polit\`ecnica de Catalunya (UPC), Barcelona, Spain\\
 guillem.moreno.garcia@estudiantat.upc.edu}}
 
@@ -31,108 +31,118 @@ guillem.moreno.garcia@estudiantat.upc.edu}}
 \maketitle
 
 \begin{abstract}
-Dense channel knowledge maps can replace repeated ray tracing in radio
-planning, but a useful surrogate must preserve the strong height, range, and
-visibility structure of air-to-ground attenuation. This paper presents a
-height-aware, auditable attenuation prior for dense unmanned aerial vehicle
-channel knowledge maps. A line-of-sight branch combines free-space loss with a
-coherent image-source two-ray term and training-only height/range calibration.
-A non-line-of-sight branch combines a COST231-shaped urban term with local
-morphology descriptors, followed by regime-specific linear
-calibration. The dataset-supplied geometric visibility mask selects the branch;
-it is the deterministic \texttt{LineOfSight} output of the configured ray
-tracer. The
-evaluation uses a strict city holdout with 2590 maps from 14 unseen cities,
-each containing $513\times513$ receiver locations at \SI{7.125}{GHz}. The
-prior reaches \SI{1.9277}{dB} overall root mean square error, with
-\SI{1.7370}{dB} in line of sight and \SI{3.5275}{dB} in non-line of sight,
-while attaining a per-map spatial correlation of 0.9481. A city bootstrap
-gives a 95\% interval of \SIrange{1.7960}{2.0967}{dB} for overall error. The
-result provides a
-strong, inspectable starting point for fast UAV radio-map generation and for
-later residual learning.
+This paper introduces a dense FR3 channel knowledge map dataset for unmanned
+aerial vehicle base stations. It contains 16180 ray-traced realizations from
+3236 locations across 66 cities at \SI{7.125}{GHz}, with attenuation, geometric
+visibility, delay spread, and angular spread stored at $513\times513$
+resolution for five transmitter heights per location. We use attenuation as a
+focused first benchmark and propose a height-aware, auditable model. Its LoS
+branch combines free-space loss with a coherent image-source two-ray term,
+whereas its NLoS branch combines a COST231-shaped basis with local morphology
+and topology-specific linear calibration. The dataset-supplied ray-traced
+visibility mask selects the branch. Under a strict city holdout, the frozen
+model reaches \SI{1.9277}{dB} overall root mean square error, with
+\SI{1.7370}{dB} in LoS and \SI{3.5275}{dB} in NLoS, on 2590 maps from 14 unseen
+cities. Its median CPU time is \SI{0.0602}{s} per map. The result provides a
+transparent attenuation baseline and a physical anchor for later
+distribution-aware refinement of all three channel quantities.
 \end{abstract}
 
 \begin{IEEEkeywords}
-air-to-ground channel, channel attenuation, channel knowledge map, path loss,
-radio map, unmanned aerial vehicle.
+channel attenuation, channel knowledge map, delay spread, path loss, radio
+map, unmanned aerial vehicle.
 \end{IEEEkeywords}
 
 \section{Introduction}
+Uncrewed aerial vehicles (UAVs) carrying base stations can support future 6G
+networks through mobility and an increased probability of line of sight
+(LoS). Their deployment nevertheless requires fast
+location-dependent channel information for placement and resource management.
+Channel knowledge maps (CKMs) address this need by indexing channel information
+by transmitter or receiver location~\cite{ckmtutorial2024,zengx2021ckm}. A CKM
+may store attenuation, multipath delays and angles, or richer channel
+descriptions.
 
-Channel knowledge maps (CKMs) organize location-dependent channel information
-so that planning and adaptation do not require a new measurement or ray-tracing
-query for every link \cite{zengx2021ckm,ckmtutorial2024}. The idea is especially
-relevant to unmanned aerial vehicle (UAV) networks, where transmitter height
-changes visibility, propagation distance, and the interaction with the urban
-skyline \cite{khawaja_survey,saboor2025height}. A dense CKM surrogate must
-therefore reproduce more than a plausible image: it must preserve radial
-attenuation structure, line-of-sight (LoS) and non-line-of-sight (NLoS)
-regimes, and their dependence on height.
+CKMs can be obtained from measurements or channel models. Measurements are
+accurate but costly to collect densely, whereas deterministic ray tracing (RT)
+offers spatially complete labels at substantial computational cost. Available
+CKM datasets commonly rely on RT~\cite{dataset2212,ckmimagenet2025}, and learned
+surrogates such as RadioUNet and PMNet use convolutional encoder--decoders to
+predict dense channel maps from city geometry and transmitter
+information~\cite{radiounet2020,pmnet2023,pmnet_icassp2023}.
 
-Data-driven radio-map methods can achieve accurate dense predictions
-\cite{pmnet2023}, but an unconstrained regressor may spend capacity recovering
-simple propagation structure and may hide a weak NLoS regime behind a global
-metric. Purely analytical models present the opposite problem. Free-space and
-two-ray models capture range and coherent reflection, while classical urban
-models describe broad blocked-link trends \cite{cost231}. Their original
-coefficients and deployment
-domains, however, do not directly reproduce the high-resolution ray-traced CKM
-maps considered here.
+The upper mid-band frequency range FR3, between 7 and 24 GHz, is a candidate
+for combining wider bandwidth than FR1 with more favorable coverage than
+FR2~\cite{Cui2024}. It is especially relevant to elevated transmitters, which
+often benefit from LoS yet must still operate through urban NLoS regions.
+Assessing that setting requires channel data across varied building
+morphologies and transmitter heights. To our knowledge, no public CKM dataset
+currently provides this combination in FR3.
 
-The specific gap addressed here is an inspectable attenuation anchor that
-combines these two views under a strict unseen-city protocol. The proposed
-prior keeps literature-derived
-propagation structure, but fits all CKM-specific coefficients using training
-cities only. LoS pixels use a coherent two-ray model with smooth height and
-radial calibration. NLoS pixels use a clipped COST231-shaped term plus
-local morphology features. A geometric visibility mask combines both maps.
+\begin{table*}
+\centering
+\caption{Comparison of dense CKM datasets.}
+\vspace{-2pt}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}c|c|c|c|c@{}}
+\toprule
+Property  & This work & UrbanRadio3D~\cite{radiodiff2025} & RadioMapSeer~\cite{dataset2212} & CKMImageNet~\cite{ckmimagenet2025} \\ \hline
+Frequency range & FR3 & FR1 & FR1 & FR2 \\ \hline
 
-The main contributions are:
+Elevated Tx height & yes & no & no & no \\ \hline
 
-\begin{itemize}
-\item a height-aware LoS prior that preserves coherent radial rings instead of
-reducing the link to distance-only loss;
-\item a morphology-aware NLoS prior whose raw propagation estimate, local
-building descriptors, and fitted regime remain separately inspectable; and
-\item a leakage-resistant evaluation on 14 unseen cities, including an
-analytical component ablation, LoS/NLoS and height diagnostics, and uncertainty
-from a held-out-city bootstrap.
-\end{itemize}
+Number of maps & 16180 & 701 & 701 & 42 \\ \hline
 
-The scope is deliberately limited to the attenuation prior. Delay spread,
-angular spread, and neural residual learning are outside the contribution.
+Map size & 513$\times$513 & 256$\times$256 & 256$\times$256 & 128$\times$128 \\ \hline
 
-\subsection{Related Work and Positioning}
+Horizontal resolution & 1 m & 1 m & 1 m & 2 m \\ \hline
 
-CKMs describe location-indexed channel side information rather than a single
-link budget. Their uses include environment-aware scheduling, beam selection,
-and trajectory or deployment planning \cite{zengx2021ckm,ckmtutorial2024}.
-Dense attenuation-map prediction is commonly approached as image-to-image
-regression. RadioUNet, PMNet, and related challenge systems demonstrate the
-strength of convolutional encoder--decoder models when topology and sparse or
-simulated radio information are available \cite{radiounet2020,pmnet2023,
-pmnet_icassp2023,icassp2023challenge}. These methods motivate dense output,
-but many reported settings do not combine a continuously varying elevated
-transmitter with a strict city holdout.
+Real building footprint & yes & yes & yes & yes \\ \hline
 
-Hybrid models address the complementary weakness of pure image regression:
-known propagation structure should not have to be rediscovered independently
-in every city. Free-space and coherent two-ray models explain the dominant
-range, height, and reflection structure of unobstructed links
-\cite{rappaport,goldsmith,wocc2021}. COST231/Hata models provide a coarse
-blocked-link trend \cite{cost231}. However, their nominal coefficients and validity
-ranges cannot simply be transferred to a dense \SI{7.125}{GHz} ray-traced
-dataset. We therefore retain their functional structure as a prior and fit
-only compact calibration terms on training cities.
+Real building height & yes & no & no & no \\
+\bottomrule
+\end{tabular}
+\label{tab:datasets}
+\vspace{-12pt}
+\end{table*}
 
-This positioning differs from learning a correction to a single path-loss
-formula. The LoS branch explicitly preserves coherent rings, whereas the NLoS
-branch combines a conservative analytical scale with observed local
-morphology. It also differs from probabilistic LoS models: a deterministic
-visibility mask is available here and is used to route each receiver through
-the appropriate branch. The result is a fully dense attenuation estimate whose
-intermediate quantities remain accessible for diagnosis.
+\paragraph{Limitations of the existing CKM datasets}
+Table~\ref{tab:datasets} shows the remaining gap: existing dense sets use FR1
+or FR2, lack UAV transmitter heights, or do not provide building-scale height
+information. UAV channels can vary substantially with altitude
+and accurate urban blockage requires building height as
+well as footprint. This information is sparse in OpenStreetMap
+\cite{Bernard2022}. We therefore use global building-scale products that
+provide both quantities~\cite{Che2024globfp,Zhu2025atlas}.
+
+\paragraph{Limitations of the existing CKM modeling approaches}
+Recent CKM estimators use increasingly expressive convolutional, transformer,
+variational, and diffusion architectures. Such models are valuable when sparse
+observations or unresolved propagation effects must be inferred, but their
+added complexity is rarely isolated from stable propagation structure. This
+comparison is particularly relevant when geometric visibility is already
+available and transmitter height varies continuously. A calibrated analytical
+base can explain the repeatable structure before a learned model is asked to
+represent local residuals and multimodal tails.
+
+\paragraph{Contributions}
+The paper makes two contributions:
+\begin{enumerate}
+    \item We introduce an FR3 CKM dataset generated by RT at 3236 locations
+    across 66 cities. Five transmitter heights per location yield 16180 dense
+    maps containing attenuation, LoS, delay spread, and angular spread.
+    Global building footprint and height products provide the underlying 3D
+    geometry~\cite{Che2024globfp,Zhu2025atlas}.
+    \item We establish an attenuation benchmark through a height-aware model
+    that separates LoS and NLoS mechanisms. Coherent two-ray structure handles
+    LoS, while topology-specific linear calibration corrects a COST231-shaped
+    NLoS basis. Every fitted quantity is frozen before evaluation on unseen
+    cities.
+\end{enumerate}
+Section~II defines the data and evaluation contract, Section~III presents the
+attenuation model, Section~IV reports the results, and Section~V concludes the
+paper.
 
 \section{Data and Evaluation Contract}
 
@@ -140,11 +150,16 @@ Each sample is a $513\times513$ urban CKM with \SI{1}{m} spatial resolution.
 One elevated transmitter is horizontally centered in the map, operates at
 \SI{7.125}{GHz}, and has a sample-dependent height
 $h_{\mathrm{tx}}\approx\SIrange{12}{478}{m}$. Every non-building pixel is a
-receiver candidate at $h_{\mathrm{rx}}=\SI{1.5}{m}$. The metric first excludes
-all building pixels and then retains only finite ray-traced targets in the
-stored $[20,185]$ dB support. The prediction target is the stored dense
-channel-attenuation map as an unsigned 8-bit array with \SI{1}{dB}
-quantization.
+receiver candidate at $h_{\mathrm{rx}}=\SI{1.5}{m}$. The HDF5 stores dense
+attenuation, delay spread in ns, angular spread in degrees, and geometric LoS
+for every realization. All three channel quantities are released; the model
+and benchmark in this paper deliberately focus on attenuation, the primary
+link-budget quantity and the one for which the dominant propagation structure
+can be isolated most directly.
+
+The attenuation metric first excludes all building pixels and then retains
+only finite ray-traced targets in the stored $[20,185]$ dB support. The target
+is an unsigned 8-bit array with \SI{1}{dB} quantization.
 
 Headline metrics use the binary \texttt{LineOfSight} field emitted by the
 configured MATLAB ray tracer and stored as \texttt{los\_mask}. It is keyed by
@@ -168,26 +183,8 @@ $y_i(p)$, the pixel-weighted test error is
 {\sum_i\sum_p m_i(p)}}.
 \label{eq:rmse}
 \end{equation}
-We also report mean absolute error (MAE) and map correlation. Let
-$\Omega_i=\{p:m_i(p)=1\}$, $N_i=|\Omega_i|$, and let
-$\widetilde{\mathbf y}_i$ and $\widetilde{\hat{\mathbf y}}_i$ denote the valid
-target and prediction vectors after subtracting their respective per-map
-means. Then
-\begin{equation}
-\begin{aligned}
-\rho_i&=\frac{\widetilde{\hat{\mathbf y}}_i^{\top}
-\widetilde{\mathbf y}_i}
-{\|\widetilde{\hat{\mathbf y}}_i\|_2\|\widetilde{\mathbf y}_i\|_2},\\
-\mathrm{MapCorr}&=\frac{\sum_{i\in\mathcal C}N_i\rho_i}
-{\sum_{i\in\mathcal C}N_i}.
-\end{aligned}
-\label{eq:mapcorr}
-\end{equation}
-The set $\mathcal C$ excludes maps with fewer than two valid pixels or zero
-variance in either vector. Thus, map correlation is the valid-pixel-weighted
-mean of per-map Pearson correlations, not one correlation after concatenating
-all cities. RMSE remains the primary unit-aware metric; map correlation checks
-whether relative high- and low-attenuation regions are placed correctly.
+We also report mean absolute error (MAE) and an unweighted macro average of
+per-city RMSE. RMSE remains the primary pixel-weighted, unit-aware metric.
 Uncertainty is estimated by 20000 percentile-bootstrap draws over the 14 final
 test cities. Each draw samples cities with replacement and recomputes the
 pixel-weighted metric; this preserves within-city spatial dependence rather
@@ -260,7 +257,7 @@ d_{\mathrm{ref}}&=\sqrt{d_{2D}^2+(h_{\mathrm{tx}}+h_{\mathrm{rx}})^2}.
 \end{equation}
 The free-space term follows the Friis distance dependence, while the coherent
 correction retains the phase difference between the direct and reflected paths
-\cite{rappaport,goldsmith,wocc2021}:
+\cite{rappaport}:
 \begin{align}
 \mathrm{FSPL}&=32.45+20\log_{10}(d_{\mathrm{LoS}}/1000)
 +20\log_{10}(f_{\mathrm{MHz}}),\label{eq:fspl}\\
@@ -494,6 +491,14 @@ Bias & 144.446889 & 119.161245 & 150.024085 \\
 \end{tabular}
 \end{table}
 
+The topology split changes the fitted relationship, not only its intercept.
+At middle height, the COST231 coefficient changes sign between open and the
+other two classes, while the distance, density, local-visibility, and elevation
+coefficients also change substantially. Correlated raw coefficients cannot be
+ranked as independent feature importances, but these cross-topology changes
+show that one global set of slopes would combine distinct propagation
+regimes.
+
 The current artifact contains all $3\times3$ NLoS topology/height vectors;
 the inference code checks compatible height-bin fallbacks only if an exact key
 is absent. This branch is semi-empirical, but its raw estimate, each feature,
@@ -515,17 +520,23 @@ The component ablation uses the 2750-map validation partition; every fitted
 variant still uses training cities only.
 The coherent term reduces LoS RMSE from 3.7900 to \SI{1.7412}{dB}; the radial
 table gives a smaller further reduction. The raw COST231 term is not accurate
-enough by itself at \SI{25.4044}{dB}. A global NLoS ridge model reduces this to
-\SI{3.2179}{dB}, while observable topology and height regimes reach
-\SI{3.1879}{dB}.
+enough by itself. A global NLoS ridge model produces a strong reduction, and
+observable topology and height regimes improve it further. On final test,
+topology-only routing retains over 90\% of the
+NLoS RMSE reduction obtained by moving from one global calibration to all nine
+topology/height regimes; topology is therefore the dominant partition
+variable, with transmitter-height bins providing a smaller refinement. A
+topology-specific intercept is already a usable coarse predictor; the
+heterogeneous slopes supply the remaining gain. A separately recalibrated
+eight-term variant retaining the 41-pixel context,
+geometry, visibility, COST231, and bias terms also recovers over 90\% of the
+complete model's improvement over a constant regime baseline.
 
 Table~\ref{tab:main} gives the final attenuation-only test result. The prior
 reaches \SI{1.9277}{dB} RMSE and \SI{1.2151}{dB} MAE across all valid receiver
-pixels. The map correlation of 0.948119 shows that its accuracy is not obtained
-only by matching a global offset: relative high- and low-attenuation regions
-are generally placed correctly. The LoS error is \SI{1.7370}{dB}. NLoS remains
-the hard regime at \SI{3.5275}{dB}, consistent with the unobserved identity of
-the dominant diffracted or reflected path after direct-path blockage.
+pixels. The LoS error is \SI{1.7370}{dB}. NLoS remains the hard regime at
+\SI{3.5275}{dB}, consistent with the unobserved identity of the dominant
+diffracted or reflected path after direct-path blockage.
 
 \begin{table}[t]
 \centering
@@ -542,7 +553,6 @@ Overall RMSE [dB] & 1.9277 & [1.7960, 2.0967] \\
 Overall MAE [dB] & 1.2151 & [1.1350, 1.3174] \\
 LoS RMSE [dB] & 1.7370 & [1.6603, 1.8225] \\
 NLoS RMSE [dB] & 3.5275 & [3.2106, 3.8529] \\
-Map correlation & 0.948119 & [0.942648, 0.952578] \\
 Macro city RMSE [dB] & 1.9823 & [1.8484, 2.1293] \\
 \bottomrule
 \end{tabular}
@@ -633,19 +643,26 @@ receiver visibility values were identical between runs.
 
 With this stored ray-traced mask, one final prior map takes a median \SI{0.0602}{s}
 (95th percentile \SI{0.0844}{s}) over 100 maps on an AMD Ryzen 5 5600X CPU;
-HDF5 reading is timed separately at \SI{0.0046}{s} median. On the same CPU,
-with GPU execution disabled for both paths, MATLAB R2024b ray tracing takes a
-median \SI{102.289}{s} (range \SIrange{91.452}{260.310}{s}) over five Barcelona
-layouts. Each timed run uses one transmitter height, a \SI{1}{m} receiver
-grid, one reflection, and no diffraction, and extracts attenuation, delay
-spread, and angular spread. The raw median wall-clock difference is therefore
-about $1700\times$ for the stored-mask prior core. This is not a like-for-like
-speedup because MATLAB returns three channel quantities, whereas this paper's
-prior returns only attenuation. Nevertheless, the comparison shows a
-substantial computational gap at the same spatial resolution. A future journal
-paper will apply analogous
-interpretable priors to delay and angular spread, enabling a closer
-multi-output comparison.
+HDF5 reading is timed separately at \SI{0.0046}{s} median. The deployed state
+contains about 66.8 thousand LoS calibration entries and 126 NLoS regression
+coefficients. The final NLoS dot product uses at most 14 multiply-accumulate
+operations per evaluated receiver, although the measured time also includes
+feature construction and LoS evaluation. For context, an executable PMNet
+configuration contains 33.34 million parameters and requires 52.71 GMAC for a
+$256\times256$ map when counting convolutions only~\cite{pmnet2023}; this is an
+architectural comparison, not an accuracy comparison across datasets.
+
+On the same CPU, with GPU execution disabled for both paths, MATLAB R2024b ray
+tracing takes a median \SI{102.289}{s} (range
+\SIrange{91.452}{260.310}{s}) over five Barcelona layouts. Each run uses one
+transmitter height, a \SI{1}{m} receiver grid, one reflection, and no
+diffraction, and extracts attenuation, delay spread, and angular spread. The
+raw median wall-clock difference is about $1700\times$ for the stored-mask
+prior core, but it is not a like-for-like speedup because MATLAB returns three
+channel quantities and also generates visibility. It nevertheless establishes
+a substantial computational gap at the same spatial resolution. A future
+journal paper will combine analogous spread priors with distribution-aware
+deep refinement, enabling a closer multi-output comparison.
 
 All current scenes use flat terrain. Consequently, the reported visibility,
 distance, and height relationships do not account for terrain-induced blockage
@@ -658,21 +675,25 @@ relief classes.
 
 \section{Conclusion}
 
-This paper presented an attenuation prior for dense, variable-height UAV CKMs.
-Rather than treating attenuation as generic image-to-image regression, it
-assigns stable structure to explicit components: coherent radial and two-ray
-behaviour in LoS, COST231 propagation and local morphology in NLoS, and a
-deterministic visibility mask to route between them. Every lookup table and
-regression coefficient is fitted on the training cities and frozen before the
-unseen cities are evaluated, so the final test result requires no city-specific
-adaptation.
+This paper introduced a dense FR3 UAV CKM dataset with attenuation, delay
+spread, angular spread, and geometric visibility for 16180 realizations from
+66 cities. The modeling contribution deliberately focused on attenuation as a
+first benchmark. Rather than treating it as generic image-to-image regression,
+the proposed prior assigns stable structure to explicit components: coherent
+radial and two-ray behaviour in LoS, COST231 propagation and local morphology
+in NLoS, and a deterministic visibility mask to route between them. Every
+lookup table and regression coefficient is fitted on the training cities and
+frozen before unseen cities are evaluated.
 
 On 2590 maps from 14 held-out cities, the prior reaches \SI{1.9277}{dB}
-overall RMSE, \SI{1.7370}{dB} LoS RMSE, \SI{3.5275}{dB} NLoS RMSE, and
-0.948119 map correlation. The component ablation shows that the coherent LoS
-structure and calibrated NLoS morphology are complementary rather than
-interchangeable. Separate regime reporting is essential: the aggregate metric
-is LoS dominated, while hundreds of maps contain substantial NLoS support.
+overall RMSE, \SI{1.7370}{dB} LoS RMSE, and \SI{3.5275}{dB} NLoS RMSE. The
+component study identifies coherent LoS structure and topology-partitioned
+NLoS calibration as the central ingredients. Topology is the dominant NLoS
+partition variable: topology-only routing nearly matches the full
+topology/height calibration, and the fitted slopes change markedly across
+urban classes. Separate regime reporting remains essential because the
+aggregate metric is LoS dominated while hundreds of maps contain substantial
+NLoS support.
 
 The broader conclusion is that a strong CKM estimator should explain stable
 physical and statistical structure before a more flexible model is asked to
@@ -680,8 +701,10 @@ learn the remaining local detail. Here that principle yields a compact,
 auditable CPU estimator with a median runtime of \SI{0.0602}{s} per map. The
 prior can therefore serve both as a standalone surrogate and as a frozen anchor
 for residual learning. Future work will incorporate non-flat terrain, study
-transfer across frequencies and antenna configurations, and extend the same
-prior-first methodology to delay and angular spread in a future journal paper.
+transfer across frequencies and antenna configurations, and develop a future
+journal treatment of path loss, delay spread, and angular spread in which deep
+learning refines the analytical bases and models the remaining output
+distributions.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}

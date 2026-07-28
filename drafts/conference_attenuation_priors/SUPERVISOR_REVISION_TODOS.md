@@ -84,10 +84,11 @@ Before writing this claim:
 - [ ] Include a representative NLoS target figure only if its visual pattern
       agrees with the aggregate statistics.
 
-The topology mean and global mean baselines perform almost identically on
-final test. Therefore, the current evidence does not show a clear test
-advantage from the topology mean alone. Keep the exact values in the
-experimental artifact rather than the paper narrative.
+A topology-specific bias already gives a usable coarse NLoS prediction, close
+to 4.54 dB RMSE on final test. The global constant is numerically similar, so
+the bias-only comparison does not isolate the value of topology by itself.
+The controlled routing ablation below does: it keeps the feature set fixed and
+changes only which coefficient table is selected.
 
 ## Eight term result
 
@@ -121,19 +122,33 @@ artifacts.
 
 ## Role of morphology and topology
 
-The strongest supported morphology result is the importance of the 41 pixel
-local scale. Removing the 15 pixel family has a negligible effect, whereas
-removing the 41 pixel family causes a clearly larger degradation. Keep the
-exact differences in the experimental CSV.
+The dedicated routing ablation supports topology as the dominant NLoS
+partition variable. With the same calibrated feature model, final-test NLoS
+RMSE is 3.5275 dB for the complete topology and height routing, 3.5296 dB for
+topology-only routing, 3.5505 dB for height-only routing, and 3.5568 dB for one
+global calibration. Relative to the global calibration, topology-only routing
+retains about 92.9% of the improvement of the complete routing. Height is
+therefore a smaller refinement after topology has been selected.
 
-Do not currently claim that topology partitioning is one of the two most
-important components. The available results show only a modest incremental
-gain over the global regression.
+The coefficient tables reinforce this interpretation. At middle height,
+(PL_C) changes sign between open/low-rise and the other two topology classes,
+while the distance, density, local visibility, elevation, and bias coefficients
+also change substantially. Individual raw coefficients are correlated and use
+different feature scales, so they are not standalone importance scores. Their
+cross-topology changes nevertheless show that one global set of slopes would
+combine distinct propagation regimes.
+
+The 41 pixel context is independently the most informative local morphology
+scale. Removing the 15 pixel family has a negligible effect, whereas removing
+the 41 pixel family causes a clearly larger degradation. Keep those exact
+differences in the experimental CSV.
 
 The supported wording is:
 
-> The 41 pixel local context is the most informative morphological scale,
-> while explicit topology routing provides a smaller additional benefit.
+> Topology is the dominant NLoS calibration partition: topology-only routing
+> nearly matches the complete topology and height routing, while transmitter
+> height provides a smaller refinement. Within each regime, the 41 pixel
+> context is the most informative local morphology scale.
 
 The small conditional NLoS morphology gain does not mean that morphology is
 irrelevant. The visibility mask is supplied, so the model already knows which
