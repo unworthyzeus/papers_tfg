@@ -272,7 +272,7 @@ def build_figure(data: dict[str, object], city: str, sample: str) -> plt.Figure:
     fig.text(
         0.70,
         0.017,
-        "Crosses mark the central transmitter pixel; gray pixels denote buildings, not excluded ground receivers. Building pixels are excluded from the metrics.",
+        "Crosses mark the central transmitter pixel; gray areas indicate buildings and are excluded from metric computation.",
         ha="center",
         va="bottom",
         fontsize=7.4,
