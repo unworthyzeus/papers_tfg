@@ -1,6 +1,8 @@
 # Revision TODOs After Supervisor Discussion
 
-Status: waiting for Genia's revised paper and the selected CKM papers.
+Status: Genia's revised paper and the six selected GLOBECOM 2025 papers have
+been reviewed. Detailed findings and reproducible complexity estimates are in
+`GC25_COMPLEXITY_REVIEW.md`.
 
 Do not edit the current paper from this note alone. Use it as the revision
 brief once the revised TeX or PDF is provided.
@@ -32,12 +34,12 @@ overkill. A defensible formulation is:
 
 ## Literature and complexity comparison
 
-- [ ] Read the supplied GLOBECOM 2025 CKM papers.
-- [ ] Search for additional recent CKM and radio map prediction papers.
-- [ ] Prioritize papers for which computational complexity is directly
+- [x] Read the supplied GLOBECOM 2025 CKM papers.
+- [x] Search for additional recent CKM and radio map prediction papers.
+- [x] Prioritize papers for which computational complexity is directly
       reported or can be computed reliably from a complete architecture,
       released code, or an exact layer table.
-- [ ] Select one or two representative deep models that satisfy that
+- [x] Select representative deep models that satisfy that
       requirement for the quantitative comparison.
 - [ ] Record, when available:
   - parameter count;
@@ -46,9 +48,9 @@ overkill. A defensible formulation is:
   - input information, especially whether visibility is supplied;
   - output resolution;
   - evaluation mask and split protocol.
-- [ ] If MACs are not reported, estimate them from the published architecture
+- [x] If MACs are not reported, estimate them from the published architecture
       and state that they are estimates.
-- [ ] Do not put a paper in the quantitative complexity table when its
+- [x] Do not put a paper in the quantitative complexity table when its
       operations cannot be reproduced from the available description. Such a
       paper may still be discussed qualitatively.
 - [ ] Do not compare runtime numbers across different hardware as if they were
@@ -172,9 +174,9 @@ Proposed future work statement:
 
 ## Inputs still needed
 
-- [ ] Genia's revised TeX or PDF.
-- [ ] The six GLOBECOM 2025 CKM papers.
-- [ ] Any additional CKM papers selected for complexity comparison.
+- [x] Genia's revised TeX or PDF.
+- [x] The six GLOBECOM 2025 CKM papers.
+- [x] Additional CKM papers selected for complexity comparison.
 - [ ] Confirmation of which target figure should illustrate the low within map
       NLoS variation.
 
