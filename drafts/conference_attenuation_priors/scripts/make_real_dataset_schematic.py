@@ -164,6 +164,15 @@ def draw_context(ax: plt.Axes) -> None:
         offset = layer * 0.018
         poly = layer_base + np.array([0.0, offset])
         ax.add_patch(Polygon(poly, closed=True, facecolor="white", edgecolor="#1f2933", linewidth=0.8))
+    ax.text(
+        0.52,
+        0.075,
+        "Six aligned 513 × 513 rasters.",
+        ha="center",
+        va="center",
+        fontsize=8.2,
+        color="#1f2933",
+    )
 
 
 def finite_limits(values: np.ndarray, valid_mask: np.ndarray, low: float, high: float) -> tuple[float, float]:
