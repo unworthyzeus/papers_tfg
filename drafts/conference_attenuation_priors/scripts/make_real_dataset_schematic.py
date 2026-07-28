@@ -41,6 +41,22 @@ def scalar_text(dataset: h5py.Dataset) -> str:
     return str(value)
 
 
+def topology_display(value: object) -> str:
+    labels = {
+        "open_lowrise": "open, low rise",
+        "mixed_midrise": "mixed, mid rise",
+        "dense_highrise": "dense, high rise",
+        "open_sparse_lowrise": "open sparse, low rise",
+        "open_sparse_vertical": "open sparse, vertical",
+        "mixed_compact_lowrise": "mixed compact, low rise",
+        "mixed_compact_midrise": "mixed compact, mid rise",
+        "dense_block_midrise": "dense blocks, mid rise",
+        "dense_block_highrise": "dense blocks, high rise",
+    }
+    raw = str(value)
+    return labels.get(raw, raw.replace("_", " "))
+
+
 def load_sample(path: Path, city: str, sample: str) -> dict[str, object]:
     with h5py.File(path, "r") as handle:
         group = handle[city][sample]
@@ -127,29 +143,50 @@ def draw_context(ax: plt.Axes, data: dict[str, object], city: str, sample: str) 
         ax.add_patch(Circle((target_x, target_y), 0.008, color="#1f2933"))
 
     h_tx = float(data["uav_height"])
+    ax.plot([drone_x + 0.06, 0.91], [drone_y, drone_y], color="#6b7280", lw=0.55, ls=":")
+    ax.plot([0.84, 0.91], [0.315, 0.315], color="#6b7280", lw=0.55, ls=":")
     ax.annotate(
         "",
         xy=(0.91, drone_y),
         xytext=(0.91, 0.315),
         arrowprops={"arrowstyle": "<->", "color": "#1f2933", "lw": 0.9},
     )
-    ax.text(0.925, 0.54, rf"$h_{{\mathrm{{Tx}}}}={h_tx:.1f}$ m", rotation=90, ha="left", va="center", fontsize=8.3)
+    ax.text(
+        0.77,
+        0.83,
+        f"Tx height above ground\n{h_tx:.1f} m",
+        ha="center",
+        va="center",
+        fontsize=7.7,
+        color="#1f2933",
+        bbox={"boxstyle": "round,pad=0.18", "facecolor": "white", "edgecolor": "none", "alpha": 0.92},
+    )
 
     layer_base = np.array([[0.14, 0.12], [0.82, 0.12], [0.91, 0.20], [0.23, 0.20]])
     for layer in range(6):
         offset = layer * 0.018
         poly = layer_base + np.array([0.0, offset])
         ax.add_patch(Polygon(poly, closed=True, facecolor="white", edgecolor="#1f2933", linewidth=0.8))
-    ax.text(0.52, 0.075, "6 aligned 513 × 513 rasters", ha="center", va="center", fontsize=8.4)
+    ax.text(0.52, 0.100, "Six aligned spatial layers, each 513 × 513", ha="center", va="center", fontsize=8.2)
 
+    topology_3 = topology_display(data["topology_3_class"])
+    topology_6 = topology_display(data["topology_6_class"])
     ax.text(
         0.5,
-        0.018,
-        "3-class: " + str(data["topology_3_class"]).replace("_", "/")
-        + "   ·   6-class: " + str(data["topology_6_class"]).replace("_", "/"),
+        0.057,
+        f"Attenuation class (1 of 3): {topology_3}",
+        ha="center",
+        va="center",
+        fontsize=7.0,
+        color="#4b5563",
+    )
+    ax.text(
+        0.5,
+        0.015,
+        f"Spread class (1 of 6): {topology_6}",
         ha="center",
         va="bottom",
-        fontsize=7.2,
+        fontsize=7.0,
         color="#4b5563",
     )
 
