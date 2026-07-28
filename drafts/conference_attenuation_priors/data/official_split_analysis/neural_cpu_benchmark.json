@@ -1,0 +1,61 @@
+{
+  "protocol": {
+    "device": "cpu",
+    "cpu": "AMD Ryzen 5 5600X 6-Core Processor",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10",
+    "torch": "2.4.1+cpu",
+    "torch_intraop_threads": 6,
+    "torch_interop_threads": 1,
+    "mkldnn_enabled": true,
+    "warmup_forward_passes": 10,
+    "timed_forward_passes": 50,
+    "batch_size": 1,
+    "input": "fixed random float32 tensor",
+    "weights": "random initialization; architecture-only benchmark",
+    "timing_scope": "model forward only",
+    "mac_scope": "Conv2d and ConvTranspose2d only; one MAC is one multiply-accumulate"
+  },
+  "models": {
+    "PMNet_v3_output_stride_8": {
+      "source": "https://github.com/abman23/PMNet",
+      "source_commit": "a0e0c5926de721074beeb23f630f2d313f6508dd",
+      "input_shape": [
+        1,
+        2,
+        256,
+        256
+      ],
+      "parameters": 33340353,
+      "convolution_macs": 52710465536,
+      "convolution_gmac": 52.710465536,
+      "cpu_time_s": {
+        "median": 0.4042393500012622,
+        "mean": 0.43568334600000524,
+        "p95": 0.6595416999989538,
+        "min": 0.32840500000020256,
+        "max": 0.782642099999066
+      }
+    },
+    "RadioUNet_RadioWNet": {
+      "source": "https://github.com/RonLevie/RadioUNet",
+      "source_commit": "36ab70663443af615c37051ce97da14d04925c7a",
+      "input_shape": [
+        1,
+        2,
+        256,
+        256
+      ],
+      "parameters": 13274031,
+      "convolution_macs": 12731267328,
+      "convolution_gmac": 12.731267328,
+      "cpu_time_s": {
+        "median": 0.13392620000013267,
+        "mean": 0.13424210600016523,
+        "p95": 0.141191799999433,
+        "min": 0.12081720000060159,
+        "max": 0.15553770000042277
+      }
+    }
+  }
+}

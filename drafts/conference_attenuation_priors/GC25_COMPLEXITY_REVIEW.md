@@ -46,8 +46,8 @@ submission ready.
   bibliography: `Vinogradov2018`, `Geraci2022ntn`, `Zeng2024`, `zeng2021ckm`,
   `Chen2017rem`, `Cui2024`, `saboor26`, `vinogradov2026upsim`, `Bernard2022`,
   `Che2024globfp`, and `Zhu2025atlas`.
-- The introduction still says `Air-to-Ground (A2G)`, although the requested
-  terminology change was to remove A2G throughout the paper.
+- The introduction still uses the earlier air-link terminology, although the
+  requested revision was to describe the model directly in terms of attenuation.
 - The PDF metadata title contains `adn` instead of `and` and its author order
   does not match the displayed author order.
 
@@ -113,14 +113,13 @@ difference.
 
 ## Additional papers screened for reproducible complexity
 
-- [PMNet](https://arxiv.org/abs/2211.10527) is the best additional comparator.
-  It directly predicts dense path loss, its architecture can be reconstructed,
-  and it is already relevant to the conference paper's related work. The
-  executable project reconstruction is used for the count below.
-- [RadioUNet](https://github.com/RonLevie/RadioUNet) has public implementation
-  code and is therefore countable in principle. It is not needed in the compact
-  paper table if PMNet is retained, because the two rows would represent the
-  same broad convolutional family while consuming scarce space.
+- [PMNet](https://github.com/abman23/PMNet) directly predicts dense path loss
+  and its official executable architecture provides both an exact convolution
+  MAC count and a reproducible CPU forward time.
+- [RadioUNet](https://github.com/RonLevie/RadioUNet) also provides its complete
+  two-stage RadioWNet implementation. It is retained because benchmarking both
+  official models on one CPU is more informative than quoting incomparable
+  GPU times from different papers.
 - [RadioDiff](https://github.com/UNIC-Lab/RadioDiff) also publishes code, but
   its total inference cost depends on the selected sampler, number of denoising
   evaluations, latent resolution, and checkpoint configuration. It should
@@ -134,54 +133,67 @@ counts, or sampling schedule cannot be reconstructed.
 ## Reconstructable computation estimates
 
 One MAC denotes one multiplication followed by one accumulation. The FLOP
-figures below use the common convention of two FLOPs per MAC. Only the PMNet
-and analytical prior rows were obtained from executable project code. The
-other neural rows are paper based estimates.
+figures below use the common convention of two FLOPs per MAC. The PMNet and
+RadioUNet rows come from their official executable code; the analytical row
+comes from the deployed feature-vector length and final-test receiver count.
+The other neural rows are paper-based estimates.
 
-| Model | Output used for count | Parameters or stored calibration | MACs per map | Evidence level |
-|---|---:|---:|---:|---|
-| Proposed prior with eight term NLoS regression | 513 by 513 | About 66.8 thousand LoS calibration entries plus 72 NLoS coefficients | NLoS dot product averages about 96.9 thousand MACs on the final test set and is bounded by 2.11 million MACs if evaluated at every pixel | Exact dot product count; full estimator also includes feature extraction, transcendental functions, lookup, clipping, and routing |
-| PMNet, output stride 8 | 256 by 256 | 33.34 million | 52.71 GMAC, or 105.42 GFLOPs | Counted from the executable convolutional architecture; convolution and transposed convolution only |
-| PMNet, output stride 16 variant | 256 by 256 | 33.34 million | 31.44 GMAC, or 62.87 GFLOPs | Same counting method, included as a sensitivity bound |
-| SSL-Radio | 256 by 256 | About 15.4 to 20.4 million | About 16.9 to 21.9 GMAC | Range spans a sequential lower interpretation and conventional concatenative U-Net skips |
-| GenSpectraLM | 224 by 224 | About 111.1 million | About 9.51 GMAC | Estimate assuming one input channel, 16 by 16 patches, 75% masking, and a feed forward ratio of four |
-| GenSpectraLM extrapolation | 512 by 512 | Same parameters | About 57.6 GMAC | Same assumptions, with attention recomputed for 1024 total tokens and 256 visible encoder tokens; not a paper reported configuration |
+| Model | Output used for count | Parameters or stored calibration | MACs per map | CPU median |
+|---|---:|---:|---:|---:|
+| Proposed complete 14-term prior | 513 by 513 | About 66.8 thousand LoS entries plus 126 NLoS coefficients | Final NLoS dot product averages 0.170 MMAC and is bounded by 3.684 MMAC over the full grid | 0.0602 s |
+| RadioUNet RadioWNet | 256 by 256 | 13.27 million | 12.73 GMAC | 0.1339 s |
+| PMNet, output stride 8 | 256 by 256 | 33.34 million | 52.71 GMAC | 0.4042 s |
+| PMNet, output stride 16 variant | 256 by 256 | 33.34 million | 31.44 GMAC, or 62.87 GFLOPs | Not measured |
+| SSL-Radio | 256 by 256 | About 15.4 to 20.4 million | About 16.9 to 21.9 GMAC | Not measured |
+| GenSpectraLM | 224 by 224 | About 111.1 million | About 9.51 GMAC | Not measured |
+| GenSpectraLM extrapolation | 512 by 512 | Same parameters | About 57.6 GMAC | Not measured |
 
 ### What the proposed prior count does and does not mean
 
 There are 31,365,314 valid NLoS receivers across 2,590 final test maps, or
-about 12,110 per map. Eight coefficients therefore require about 96,900 MACs
-per average map. A deliberately loose full grid upper bound is
+about 12,110 per map. The complete 14-term coefficient vector therefore
+requires about 169,542 MACs per average map. A deliberately loose full-grid
+upper bound is
 
 \[
-513^2 \times 8 = 2{,}105{,}352\ \text{MACs}.
+513^2 \times 14 = 3{,}684{,}366\ \text{MACs}.
 \]
 
 That number is only the final NLoS linear combination. The complete method
 also computes the coherent LoS prior, radial residual lookup, distance and
 angle transforms, three 41 pixel local statistics, mask routing, and clipping.
-It is therefore incorrect to divide a neural model's GMAC count by 96,900 and
+It is therefore incorrect to divide a neural model's GMAC count by 169,542 and
 call the result an end to end speedup.
 
 The complete current prior has an audited CPU median of 0.0602 seconds per map
-on an AMD Ryzen 5 5600X. The MATLAB ray tracer audit uses the same CPU and has
-a 102.289 second median, but the raw ratio is not a like for like algorithmic
-speedup because the ray tracer additionally generates visibility, delay
-spread, and angular spread. Both timing results are CPU only.
+on an AMD Ryzen 5 5600X. On that same CPU, the official RadioUNet and PMNet
+implementations have 0.1339 s and 0.4042 s median forward times at their native
+256 by 256 resolution. Neural timings use batch one, six CPU threads, 10 warmup
+passes, and 50 measured passes. The prior timing includes feature construction
+and visibility evaluation, while the neural timing is forward-only; neither
+includes file reading. The reproducible protocol and source commits are stored
+in `data/official_split_analysis/neural_cpu_benchmark.json` and generated by
+`scripts/benchmark_neural_cpu.py`.
+
+The MATLAB ray tracer audit uses the same CPU and has a 102.289 second median,
+but the raw ratio is not a like-for-like algorithmic speedup because the ray
+tracer additionally generates visibility, delay spread, and angular spread.
+All reported timing results are CPU-only.
 
 The stored LoS state needed by the current predictor contains 91 height bins,
 three 91 element two ray parameter arrays, a 91 by 363 smoothed residual
 table, its support counts, and a 363 element fallback profile. This is about
 66.8 thousand numeric entries, excluding calibration diagnostics that are not
-needed for deployment. The reduced NLoS branch adds 72 fitted coefficients:
-eight coefficients in each of nine regimes.
+needed for deployment. The complete NLoS branch adds 126 fitted coefficients:
+14 coefficients in each of nine regimes. The eight-term branch remains an
+ablation, not the deployed model.
 
 ### Counting assumptions for neural models
 
-The PMNet hook count includes `Conv2d` and `ConvTranspose2d` operations. It
-does not count batch normalization, activations, pooling, interpolation, or
-memory movement. The same omission should be kept when comparing convolution
-MAC estimates.
+The PMNet and RadioUNet hook counts include every executed `Conv2d` and
+`ConvTranspose2d` operation. They do not count batch normalization,
+activations, pooling, interpolation, or memory movement. The same omission
+should be kept when comparing convolution MAC estimates.
 
 For SSL-Radio, the published layer table is sufficient to reproduce the main
 convolutions, but it does not fully specify the input channel count and every
@@ -330,6 +342,6 @@ not a claim that the proposed error is directly better.
 - Recalibrated coefficients:
   `data/official_split_analysis/extended_nlos_ablations/recalibrated_models.json`
 - PMNet executable reconstruction used for the count:
-  `C:/TFG/TFGpractice/weird_tries/test_weird_tries_pmnet.py`
+  `TFGpractice/weird_tries/test_weird_tries_pmnet.py`
 - Current LoS prior and deployed calibration access:
-  `C:/TFG/TFGpractice/TFGSeventyEighthTry78/prior_try78.py`
+  `TFGpractice/TFGSeventyEighthTry78/prior_try78.py`

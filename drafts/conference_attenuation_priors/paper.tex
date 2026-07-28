@@ -69,7 +69,7 @@ offers spatially complete labels at substantial computational cost. Available
 CKM datasets commonly rely on RT~\cite{dataset2212,ckmimagenet2025}, and learned
 surrogates such as RadioUNet and PMNet use convolutional encoder--decoders to
 predict dense channel maps from city geometry and transmitter
-information~\cite{radiounet2020,pmnet2023,pmnet_icassp2023}.
+information~\cite{radiounet2020,pmnet2023}.
 
 The upper mid-band frequency range FR3, between 7 and 24 GHz, is a candidate
 for combining wider bandwidth than FR1 with more favorable coverage than
@@ -654,40 +654,42 @@ receiver visibility values were identical between runs.
 
 \begin{table}[t]
 \centering
-\caption{Computational context. CPU timings use the same AMD Ryzen 5 5600X,
-with GPU execution disabled.}
+\caption{CPU benchmarks and operation counts. All timings use the same AMD
+Ryzen 5 5600X with GPU execution disabled.}
 \label{tab:compute}
 \scriptsize
-\setlength{\tabcolsep}{3pt}
-\begin{tabularx}{\columnwidth}{@{}lX@{}}
+\setlength{\tabcolsep}{2.2pt}
+\begin{tabular}{@{}lcrrr@{}}
 \toprule
-Method & Output and reported cost \\
+Method & Grid & State & Conv. MAC & CPU [s] \\
 \midrule
-Proposed prior & Attenuation, $513\times513$: \SI{0.0602}{s} CPU; at most 14
-MAC per NLoS receiver; 66.8k LoS entries and 126 coefficients. \\
-PMNet~\cite{pmnet2023} & Path loss, $256\times256$: 33.34M parameters;
-52.71 GMAC for convolutions. \\
-MATLAB RT & Attenuation, DS, and AS, $513\times513$: \SI{102.289}{s} CPU. \\
+Proposed prior & $513^2$ & 66.8k+126 & 0.170M$^\ast$ & 0.0602 \\
+RadioUNet~\cite{radiounet2020} & $256^2$ & 13.27M & 12.73G & 0.1339 \\
+PMNet~\cite{pmnet2023} & $256^2$ & 33.34M & 52.71G & 0.4042 \\
+MATLAB RT & $513^2$ & -- & -- & 102.289 \\
 \bottomrule
-\end{tabularx}
+\end{tabular}
 \end{table}
 
-The prior statistics use 100 maps; \SI{0.0602}{s} is the median and
-\SI{0.0844}{s} the 95th percentile. The timing includes feature construction
-and LoS evaluation; separate HDF5 reading has a \SI{0.0046}{s} median. PMNet
-provides computable architectural context, not a same-machine timing claim.
+``State'' denotes stored entries plus coefficients for the prior and parameters
+for the networks. Its final 14-term NLoS dot product averages exactly
+$(\num{31365314}/2590)14=\num{0.170e6}$ MAC, with a \num{3.68e6}-MAC full-grid
+upper bound; local statistics, nonlinear functions, lookups, and routing are
+additional operations.
 
-On the same CPU, MATLAB R2024b ray tracing takes a median \SI{102.289}{s}
-(range \SIrange{91.452}{260.310}{s}) over five Barcelona layouts, using a
-\SI{1}{m} receiver grid, one reflection, and no diffraction. The raw
-$1700\times$ difference is not a like-for-like speedup: MATLAB also generates
-visibility and all three channel quantities. It nevertheless demonstrates a
-substantial computational gap at the same resolution. A future journal paper
-will enable a closer multi-output comparison through analogous spread priors
-and distribution-aware deep refinement.
+Neural medians use official code, batch one, six CPU threads, 10 warmups, and
+50 timed forward passes; MACs cover all executed convolutions. Input and I/O
+are excluded. The 100-map prior timing includes feature construction and LoS
+evaluation; separate HDF5 reading has a \SI{0.0046}{s} median. Despite their
+native $256^2$ grids, RadioUNet and PMNet take $2.2\times$ and $6.7\times$ the
+prior time.
 
-Current scenes use flat terrain. Future work will recompute visibility and
-path geometry over non-flat terrain and test transfer across relief classes.
+MATLAB R2024b takes a median \SI{102.289}{s} (range
+\SIrange{91.452}{260.310}{s}) over five Barcelona layouts at \SI{1}{m}
+resolution, with one reflection and no diffraction. It also generates
+visibility and all three quantities, so the raw $1700\times$ gap is not a
+like-for-like speedup. A future journal paper will enable a closer multi-output
+comparison through spread priors and distribution-aware refinement.
 
 \section{Conclusion}
 
