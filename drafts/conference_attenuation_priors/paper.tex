@@ -630,11 +630,29 @@ metric covers \num{423087119} receivers, of which 7.413\% are NLoS. Although
 the pixel-weighted score is therefore LoS dominated, 424 of the 2590 test maps
 contain more than 25\% NLoS receivers, motivating the separate regime metrics.
 
-Table~\ref{tab:itu-antenna} resolves the final error across the exact nine
-calibration regimes. All rows retain the same coherent two-ray $\rho$, $\phi$,
-bias, and recalibrated radial correction. Dense urban has only 61, 75, and 59
-test maps in the low, middle, and high bins, respectively; its larger NLoS
-errors should therefore be read together with this smaller support.
+Table~\ref{tab:itu-topology} aggregates final test error by ITU topology;
+Table~\ref{tab:itu-antenna} splits the same predictions into the nine
+topology/height regimes. All rows retain the coherent two-ray $\rho$, $\phi$,
+bias, and radial correction. Dense urban has only 195 test maps (61, 75, and
+59 at low, middle, and high height), so its NLoS error has smaller support.
+
+\begin{table}[t]
+\centering
+\caption{Test RMSE [dB] by ITU topology across all antenna heights.}
+\label{tab:itu-topology}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrr}
+\toprule
+Topology & Maps & Overall & LoS & NLoS \\
+\midrule
+Overall & 2590 & 1.9287 & 1.7370 & 3.5351 \\
+Suburban & 1455 & 1.6977 & 1.6048 & 3.1628 \\
+Urban & 940 & 2.2961 & 1.9967 & 3.6457 \\
+Dense urban & 195 & 2.5704 & 2.1126 & 4.1275 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{table}[t]
 \centering
