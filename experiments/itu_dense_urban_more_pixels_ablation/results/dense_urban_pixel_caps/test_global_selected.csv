@@ -1,0 +1,2 @@
+candidate,scope,maps,overall_rmse_db,overall_mae_db,overall_pixels,los_rmse_db,los_mae_db,los_pixels,nlos_rmse_db,nlos_mae_db,nlos_pixels
+selected_cap_4096,global_test_after_dense_replacement,2590,1.9286987203852766,1.2170223629229684,423087119,1.7370444115023174,1.1145607215660924,391721805,3.5346998316630227,2.4966671034659145,31365314

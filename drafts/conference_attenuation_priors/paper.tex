@@ -41,8 +41,8 @@ branch combines free-space loss with a coherent image-source two-ray term,
 whereas its NLoS branch combines a COST231-shaped basis with local morphology
 and topology-specific linear calibration. The dataset-supplied ray-traced
 visibility mask selects the branch. Under a strict city holdout, the frozen
-model reaches \SI{1.9277}{dB} overall root mean square error, with
-\SI{1.7370}{dB} in LoS and \SI{3.5275}{dB} in NLoS, on 2590 maps from 14 unseen
+model reaches \SI{1.9287}{dB} overall root mean square error, with
+\SI{1.7370}{dB} in LoS and \SI{3.5351}{dB} in NLoS, on 2590 maps from 14 unseen
 cities. Its median CPU time is \SI{0.0602}{s} per map. The result provides a
 transparent attenuation baseline and a physical anchor for later
 distribution-aware refinement of all three channel quantities.
@@ -150,9 +150,9 @@ The paper makes two contributions:
     geometry~\cite{Che2024globfp,Zhu2025atlas}.
     \item We establish an attenuation benchmark through a height-aware model
     that separates LoS and NLoS mechanisms. Coherent two-ray structure handles
-    LoS, while topology-specific linear calibration corrects a COST231-shaped
-    NLoS basis. Every fitted quantity is frozen before evaluation on unseen
-    cities.
+    LoS, while per-sample ITU-inspired morphology routing and topology-specific
+    linear calibration correct a COST231-shaped NLoS basis. Every fitted
+    quantity is frozen before evaluation on unseen cities.
 \end{enumerate}
 Section~II defines the data and evaluation contract, Section~III presents the
 attenuation model, Section~IV reports the results, and Section~V concludes the
@@ -171,13 +171,14 @@ and benchmark in this paper deliberately focus on attenuation, the primary
 link-budget quantity and the one for which the dominant propagation structure
 can be isolated most directly.
 
-The released artifact \nolinkurl{CKM_Dataset_270326_labeled.h5} stores
-\texttt{topology\_3\_class}, \texttt{topology\_6\_class}, and
-\texttt{antenna\_bin} per realization. The three- and six-class fields support
-attenuation and spread routing, respectively, while the antenna field records
-the low, middle, or high transmitter-height bin. All labels are deterministic
-from building density, mean nonzero building height, and transmitter height;
-they use neither city identity nor channel targets.
+The released artifact \nolinkurl{CKM_Dataset_270326_labeled.h5} stores the
+original \texttt{topology\_3\_class}, \texttt{topology\_6\_class}, and
+\texttt{antenna\_bin} fields. The attenuation benchmark reported here does not
+reuse the original three-class assignment: it recomputes an ITU-inspired
+morphology class independently for every realization from its topology raster.
+The six-class field remains available for spread modeling, while the antenna
+field records the low, middle, or high transmitter-height bin. None of these
+routes uses city identity or channel targets.
 
 Fig.~\ref{fig:dataset-realization} illustrates the spatial alignment and scalar
 height metadata of one released realization.
@@ -187,13 +188,12 @@ height metadata of one released realization.
 \caption{One released Barcelona realization (\texttt{sample\_02806}) at
 $h_{\mathrm{tx}}=\SI{69.4}{m}$. The left illustration shows the UAV above six
 aligned $513\times513$ rasters; $h_{\mathrm{tx}}$ is measured from ground, and
-the rays terminate at receiver-grid intersections. The three-class label routes
-attenuation and the six-class label routes delay and angular spread; in this
-sample they are \texttt{dense\_highrise} and
-\texttt{dense\_block\_midrise}, respectively. The panels show building height,
-building mask, LoS, attenuation, delay spread, and angular spread. Crosses mark
-the centered transmitter. Gray areas indicate buildings and are excluded from
-metric computation.}
+the rays terminate at receiver-grid intersections. Its released legacy labels
+are \texttt{dense\_highrise} and \texttt{dense\_block\_midrise}; the
+recomputed attenuation route used in this paper is \texttt{dense\_urban}.
+The panels show building height, building mask, LoS, attenuation, delay spread,
+and angular spread. Crosses mark the centered transmitter. Gray areas indicate
+buildings and are excluded from metric computation.}
 \label{fig:dataset-realization}
 \vspace{-6pt}
 \end{figure*}
@@ -432,13 +432,13 @@ n_{41}\theta_n,1]^{\top}.
 \centering
 \includegraphics[width=\textwidth]{figures/nlos_heldout_example.png}
 \caption{A held-out example from Vancouver
-(``sample\_15262'', $h_{\mathrm{tx}}=\SI{50.30}{m}$, dense/high-rise,
+(``sample\_15262'', $h_{\mathrm{tx}}=\SI{50.30}{m}$, urban,
 low-transmitter regime). Panel (a) shows the geometric support; (b)--(d) are
 the LoS target, frozen lookup-table prior, and signed error; (e) visualizes the
 raw COST231 term $\mathrm{PL}_{C}$; and (f)--(h) give the NLoS target, calibrated
 prior, and signed error. Grey excludes pixels outside the displayed
 regime or without a valid target. The unseen map contains 119180 LoS and 25607
-NLoS receivers, with \SI{2.10}{dB} and \SI{2.59}{dB} RMSE, respectively.}
+NLoS receivers, with \SI{2.10}{dB} and \SI{2.53}{dB} RMSE, respectively.}
 \label{fig:nlos-example}
 \end{figure*}
 
@@ -482,10 +482,36 @@ $j$ & Feature $x_j(p)$ & Exact computation & Scale and role \\
 \end{tabularx}
 \end{table*}
 
-The regression regime is observable. From a complete topology map, let $D$ be
-its building-pixel fraction and $H$ its mean nonzero building height. The class
-is dense/high-rise if $D\ge0.2549$ or $H\ge\SI{15.95}{m}$; open/low-rise if
-$D\le0.1957$ and $H\le\SI{10.91}{m}$; and mixed/mid-rise otherwise.
+The shadowing proxy in Table~\ref{tab:all-nlos-terms} follows the empirical
+elevation-dependent model of Feng et al.~\cite{feng2006a2g}. It is deterministic
+here: no random shadow sample is generated. Because that source model was
+developed below \SI{5}{GHz}, its value is used only as a ridge feature whose
+coefficient is recalibrated on the present \SI{7.125}{GHz} training data.
+
+The regression regime is observable and assigned per sample. Following the
+statistical building model in ITU-R P.1410-6~\cite{iturp1410}, let $\mathcal B$
+be the building pixels and let the topology contain $N_b$ four-connected
+building footprints. Each footprint contributes one rooftop observation
+$H_j$, chosen as its maximum raster height. For map area $A$ in \si{km^2},
+\begin{equation}
+\hat\alpha=\frac{|\mathcal B|}{513^2},\qquad
+\hat\beta=\frac{N_b}{A},\qquad
+\hat\gamma=\sqrt{\frac{1}{2N_b}\sum_{j=1}^{N_b}H_j^2}.
+\label{eq:itu-routing}
+\end{equation}
+Here $\hat\gamma$ is the maximum-likelihood Rayleigh scale and therefore its
+mode. P.1410-6 defines $\alpha$, $\beta$, and the Rayleigh height model; the
+standard environment tuples reproduced by Saboor et al.~\cite{saboor2024geometry}
+are suburban $(0.1,750,8)$, urban $(0.3,500,15)$, dense urban
+$(0.5,300,20)$, and urban high-rise $(0.5,300,50)$, with $\beta$ in
+buildings/\si{km^2} and $\gamma$ in metres. We assign the minimum equal-weight
+log-ratio distance to these four prototypes, then merge urban high-rise into
+dense urban. This yields the three new routes suburban, urban, and dense urban
+without a city-name lookup. The maximum-height footprint reduction is our
+documented raster adaptation; P.1410-6 does not prescribe that reduction.
+The training partition contains 4595 suburban, 5300 urban, and 945 dense-urban
+maps; the corresponding final-test counts are 1455, 940, and 195.
+
 Transmitter-height bins are low for $h_{\mathrm{tx}}\le\SI{58.12}{m}$,
 middle up to \SI{103.85}{m}, and high above it. For each training map, at most
 1024 NLoS pixels are selected with a deterministic sample seed (global seed
@@ -519,26 +545,26 @@ transmitter-height bin.}
 \setlength{\tabcolsep}{3.3pt}
 \begin{tabular}{lrrr}
 \toprule
-Feature & Open/low-rise & Mixed/mid-rise & Dense/high-rise \\
+Feature & Suburban & Urban & Dense urban \\
 \midrule
-$\mathrm{PL}_{C}$ & -0.117224 & 0.109671 & 0.117467 \\
-$\ell_d$ & 8.669730 & 4.265489 & 3.320933 \\
-$\delta_{41}$ & -14.501030 & -29.259829 & -33.524686 \\
-$n_{41}$ & 15.473961 & 11.327532 & 7.311767 \\
-$\sigma_{\mathrm{sh}}$ & -10.152455 & -7.352513 & -11.289259 \\
-$\theta_n$ & -20.718816 & -13.965305 & -22.991302 \\
-Bias & 144.446889 & 119.161245 & 150.024085 \\
+$\mathrm{PL}_{C}$ & 0.112385 & 0.097015 & 0.133400 \\
+$\ell_d$ & 5.358677 & 3.363989 & 0.784500 \\
+$\delta_{41}$ & -29.794101 & -33.596949 & -34.150380 \\
+$n_{41}$ & 25.222108 & 3.442307 & -9.415970 \\
+$\sigma_{\mathrm{sh}}$ & -10.416628 & -10.786491 & -10.351994 \\
+$\theta_n$ & -17.412735 & -22.314960 & -28.914589 \\
+Bias & 132.946988 & 149.071577 & 156.296442 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 The topology split changes the fitted relationship, not only its intercept.
-At middle height, the COST231 coefficient changes sign between open and the
-other two classes, while the distance, density, local-visibility, and elevation
-coefficients also change substantially. Correlated raw coefficients cannot be
-ranked as independent feature importances, but these cross-topology changes
-show that one global set of slopes would combine distinct propagation
-regimes.
+At middle height, the distance coefficient decreases from suburban to dense
+urban, while the contextual blocked-ground coefficient changes from strongly
+positive to negative and the fitted bias increases. Correlated raw
+coefficients cannot be ranked as independent feature importances, but these
+cross-topology changes show that one global set of slopes would combine
+distinct propagation regimes.
 
 The current artifact contains all $3\times3$ NLoS topology/height vectors;
 the inference code checks compatible height-bin fallbacks only if an exact key
@@ -562,21 +588,16 @@ variant still uses training cities only.
 The coherent term reduces LoS RMSE from 3.7900 to \SI{1.7412}{dB}; the radial
 table gives a smaller further reduction. The raw COST231 term is not accurate
 enough by itself. A global NLoS ridge model produces a strong reduction, and
-observable topology and height regimes improve it further. On final test,
-topology-only routing retains over 90\% of the
-NLoS RMSE reduction obtained by moving from one global calibration to all nine
-topology/height regimes; topology is therefore the dominant partition
-variable, with transmitter-height bins providing a smaller refinement. A
-topology-specific intercept is already a usable coarse predictor; the
-heterogeneous slopes supply the remaining gain. A separately recalibrated
-eight-term variant retaining the 41-pixel context,
-geometry, visibility, COST231, and bias terms also recovers over 90\% of the
-complete model's improvement over a constant regime baseline.
+the new observable ITU topology and height regimes improve it further. On
+final test, the full nine-regime NLoS calibration reaches \SI{3.5351}{dB},
+compared with \SI{3.5568}{dB} for one global ridge calibration. The controlled
+gain is modest globally, but the regime breakdown below exposes substantially
+different errors across morphology and transmitter height.
 
 Table~\ref{tab:main} gives the final attenuation-only test result. The prior
-reaches \SI{1.9277}{dB} RMSE and \SI{1.2151}{dB} MAE across all valid receiver
+reaches \SI{1.9287}{dB} RMSE and \SI{1.2170}{dB} MAE across all valid receiver
 pixels. The LoS error is \SI{1.7370}{dB}. NLoS remains the hard regime at
-\SI{3.5275}{dB}, consistent with the unobserved identity of the dominant
+\SI{3.5351}{dB}, consistent with the unobserved identity of the dominant
 diffracted or reflected path after direct-path blockage.
 
 \begin{table}[t]
@@ -590,17 +611,17 @@ cities, not pixels.}
 \toprule
 Metric & Estimate & 95\% interval \\
 \midrule
-Overall RMSE [dB] & 1.9277 & [1.7960, 2.0967] \\
-Overall MAE [dB] & 1.2151 & [1.1350, 1.3174] \\
+Overall RMSE [dB] & 1.9287 & [1.7984, 2.0956] \\
+Overall MAE [dB] & 1.2170 & [1.1371, 1.3177] \\
 LoS RMSE [dB] & 1.7370 & [1.6603, 1.8225] \\
-NLoS RMSE [dB] & 3.5275 & [3.2106, 3.8529] \\
-Macro city RMSE [dB] & 1.9823 & [1.8484, 2.1293] \\
+NLoS RMSE [dB] & 3.5351 & [3.2340, 3.8457] \\
+Macro city RMSE [dB] & 1.9829 & [1.8494, 2.1292] \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Per-city RMSE ranges from \SI{1.6097}{dB} in Halifax to \SI{2.5827}{dB} in
-Osaka; the unweighted 14-city mean is \SI{1.9823}{dB}. This spread and the
+Per-city RMSE ranges from \SI{1.6149}{dB} in Halifax to \SI{2.5832}{dB} in
+Osaka; the unweighted 14-city mean is \SI{1.9829}{dB}. This spread and the
 city-bootstrap interval prevent the global score from being read as uniform
 performance across environments.
 
@@ -609,32 +630,53 @@ metric covers \num{423087119} receivers, of which 7.413\% are NLoS. Although
 the pixel-weighted score is therefore LoS dominated, 424 of the 2590 test maps
 contain more than 25\% NLoS receivers, motivating the separate regime metrics.
 
-Table~\ref{tab:nlos-applied-terms} complements the raw coefficients with their
-actual test-set scale. For each NLoS receiver, its regime-specific coefficient
-is multiplied by its feature value before clipping; the table reports the
-signed mean of that term over all valid NLoS receivers. Opposite
-signs across regimes can cancel in this average, so the values are scale
-diagnostics rather than causal feature importance scores.
+Table~\ref{tab:itu-antenna} resolves the final error across the exact nine
+calibration regimes. All rows retain the same coherent two-ray $\rho$, $\phi$,
+bias, and recalibrated radial correction. Dense urban has only 61, 75, and 59
+test maps in the low, middle, and high bins, respectively; its larger NLoS
+errors should therefore be read together with this smaller support.
 
 \begin{table}[t]
 \centering
-\caption{Pixel-weighted signed mean NLoS regression contributions over all
-\num{31365314} valid NLoS test receivers. Rows are ordered by absolute value.}
-\label{tab:nlos-applied-terms}
+\caption{Pixel-weighted test RMSE [dB] by new ITU topology and antenna bin.}
+\label{tab:itu-antenna}
 \scriptsize
-\setlength{\tabcolsep}{8pt}
-\begin{tabular}{lr}
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{llrrrr}
 \toprule
-Feature & Mean contribution [dB] \\
+Topology & Ant. & Maps & Overall & LoS & NLoS \\
 \midrule
-Bias & 149.774 \\
-$\sigma_{\mathrm{sh}}$ & -72.725 \\
-$\ell_d$ & 20.188 \\
-$\mathrm{PL}_{C}$ & 13.826 \\
-$\delta_{41}$ & -6.287 \\
-$\delta_{41}\ell_d$ & 4.948 \\
-$\theta_n$ & -4.454 \\
-$n_{41}$ & 1.771 \\
+Suburban & Low & 484 & 1.8838 & 1.6787 & 3.3450 \\
+Suburban & Mid & 468 & 1.6995 & 1.6363 & 2.9723 \\
+Suburban & High & 503 & 1.5248 & 1.5175 & 2.1550 \\
+Urban & Low & 301 & 2.6449 & 2.0502 & 4.0453 \\
+Urban & Mid & 335 & 2.3470 & 2.0405 & 3.5540 \\
+Urban & High & 304 & 1.9876 & 1.9308 & 2.7207 \\
+Dense urban & Low & 61 & 2.9677 & 2.2760 & 4.3645 \\
+Dense urban & Mid & 75 & 2.7926 & 2.2464 & 4.2596 \\
+Dense urban & High & 59 & 2.0052 & 1.8996 & 3.0432 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Aggregating topology gives Table~\ref{tab:antenna-global}. The low, middle,
+and high bins are $h_{\mathrm{tx}}\le\SI{58.12}{m}$,
+$\SI{58.12}{m}<h_{\mathrm{tx}}\le\SI{103.85}{m}$, and higher than
+\SI{103.85}{m}, respectively.
+
+\begin{table}[t]
+\centering
+\caption{Pixel-weighted test RMSE [dB] by global antenna-height bin.}
+\label{tab:antenna-global}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrr}
+\toprule
+Antenna bin & Maps & Overall & LoS & NLoS \\
+\midrule
+Low & 846 & 2.1426 & 1.7872 & 3.7511 \\
+Middle & 878 & 1.9814 & 1.7849 & 3.5225 \\
+High & 866 & 1.6941 & 1.6595 & 2.6504 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -642,7 +684,7 @@ $n_{41}$ & 1.771 \\
 Height is part of the estimator rather than a post-hoc reporting variable.
 Table~\ref{tab:height} shows the frozen prior on the final test cities only
 for four physical height intervals. Error decreases from
-\SI{2.1876}{dB} at \SIrange{12}{50}{m} to \SI{1.5591}{dB} above \SI{300}{m}.
+\SI{2.1932}{dB} at \SIrange{12}{50}{m} to \SI{1.5591}{dB} above \SI{300}{m}.
 The largest change is in NLoS, where low transmitters interact more strongly
 with local rooftops and street canyons. The trend does not imply that altitude
 alone solves dense prediction; it shows why a single height-independent
@@ -658,10 +700,10 @@ calibration would combine physically different regimes.
 \toprule
 Height & Overall & LoS & NLoS & Maps \\
 \midrule
-12--50 m & 2.1876 & 1.7943 & 3.8133 & 624 \\
-50--150 m & 1.9538 & 1.7788 & 3.4256 & 1385 \\
-150--300 m & 1.6557 & 1.6370 & 2.3584 & 387 \\
-300--500 m & 1.5591 & 1.5496 & 2.2827 & 194 \\
+12--50 m & 2.1932 & 1.7943 & 3.8367 & 624 \\
+50--150 m & 1.9533 & 1.7788 & 3.4217 & 1385 \\
+150--300 m & 1.6556 & 1.6370 & 2.3540 & 387 \\
+300--500 m & 1.5591 & 1.5496 & 2.2816 & 194 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -725,21 +767,21 @@ comparison through spread priors and distribution-aware refinement.
 
 This paper introduced a dense FR3 UAV CKM dataset with attenuation, delay and
 angular spread, and geometric visibility for 16180 realizations from 66 cities.
-Its labeled HDF5 release includes three- and six-class topology partitions and
-transmitter-height bins. The attenuation benchmark assigns stable structure
-to coherent radial and two-ray LoS behaviour, COST231 and local NLoS
-morphology, and deterministic visibility routing. All calibration is frozen
-before unseen cities are evaluated.
+Its labeled HDF5 release includes the original three- and six-class topology
+partitions and transmitter-height bins. The attenuation benchmark recomputes
+the ITU-inspired three-class route per sample and assigns stable structure to
+coherent radial and two-ray LoS behaviour, COST231 and local NLoS morphology,
+and deterministic visibility routing. All calibration is frozen before unseen
+cities are evaluated.
 
-On 2590 maps from 14 held-out cities, the prior reaches \SI{1.9277}{dB}
-overall RMSE, \SI{1.7370}{dB} LoS RMSE, and \SI{3.5275}{dB} NLoS RMSE. The
+On 2590 maps from 14 held-out cities, the prior reaches \SI{1.9287}{dB}
+overall RMSE, \SI{1.7370}{dB} LoS RMSE, and \SI{3.5351}{dB} NLoS RMSE. The
 component study identifies coherent LoS structure and topology-partitioned
-NLoS calibration as the central ingredients. Topology is the dominant NLoS
-partition variable: topology-only routing nearly matches the full
-topology/height calibration, and the fitted slopes change markedly across
-urban classes. Separate regime reporting remains essential because the
-aggregate metric is LoS dominated while hundreds of maps contain substantial
-NLoS support.
+NLoS calibration as the central ingredients. The ITU-inspired route improves
+NLoS RMSE modestly over one global ridge model, while the regime tables expose
+larger variation across morphology and height. Separate regime reporting
+remains essential because the aggregate metric is LoS dominated while
+hundreds of maps contain substantial NLoS support.
 
 The broader conclusion is that CKM estimators should explain stable structure
 before learning local detail. This yields an auditable \SI{0.0602}{s} CPU

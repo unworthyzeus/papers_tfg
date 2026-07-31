@@ -22,8 +22,9 @@ from run_conference_attenuation_ablation import compute_cost231_map
 REPO_ROOT = Path(__file__).resolve().parents[1]
 HDF5_PATH = Path(r"C:\TFG\TFGpractice\Datasets\CKM_Dataset_270326.h5")
 REFERENCE_DIR = Path(r"C:\TFG\TFGpractice\TFGEightiethTry80\scripts\recalibrate_priors")
-CALIBRATION = REPO_ROOT / "drafts" / "conference_attenuation_priors" / "data" / "official_split_analysis" / "nlos_regime_calibration_official.json"
-LOS_CALIBRATION = Path(r"C:\TFG\TFGpractice\TFGSeventyEighthTry78\hybrid_out_try80_split\calibrations\try78_los_two_ray_calibration_try80split.json")
+EXPERIMENT_DIR = REPO_ROOT / "experiments" / "itu_topology_building_max_ablation"
+CALIBRATION = EXPERIMENT_DIR / "results" / "two_ray_itu3_building_max" / "nlos_regime_calibration_itu.json"
+LOS_CALIBRATION = EXPERIMENT_DIR / "results" / "two_ray_itu3_building_max" / "los_two_ray_refitted_calibration.json"
 OUTPUT = REPO_ROOT / "drafts" / "conference_attenuation_priors" / "figures" / "nlos_heldout_example.png"
 CITY = "Vancouver"
 SAMPLE = "sample_15262"
@@ -37,6 +38,16 @@ def main() -> None:
     sys.path.insert(0, str(REFERENCE_DIR))
     import try78_hybrid_path_loss_reference as priors
     import try78_los_path_loss_prior as los_model
+    sys.path.insert(0, str(EXPERIMENT_DIR))
+    from itu_topology import ITUTopologyRouter
+
+    router = ITUTopologyRouter(
+        mode="itu3",
+        meters_per_pixel=float(priors.METERS_PER_PIXEL),
+        connectivity=4,
+        min_component_area_m2=1.0,
+    )
+    priors.sample_city_type = router.classify
 
     calibration = json.loads(CALIBRATION.read_text(encoding="utf-8"))
     coefficients = {
