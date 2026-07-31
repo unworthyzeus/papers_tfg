@@ -86,6 +86,14 @@ The complete English table for global, suburban, urban, and dense urban
 scopes is in
 [`results/rho_phi_ablation/rho_phi_rmse.md`](results/rho_phi_ablation/rho_phi_rmse.md).
 
+The corresponding model-with-rho/phi breakdown contains both the nine new
+ITU-topology by antenna-bin groups and the three global antenna bins:
+[`results/rho_phi_ablation/rho_phi_with_antenna_rmse.md`](results/rho_phi_ablation/rho_phi_with_antenna_rmse.md).
+
+Updated replacements for the paper's main result table, physical-height
+table, and surrounding numerical statements are in
+[`results/rho_phi_ablation/paper_metric_replacements.md`](results/rho_phi_ablation/paper_metric_replacements.md).
+
 ## Commands
 
 ```powershell

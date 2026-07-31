@@ -18,6 +18,22 @@
     "suburban": 1455,
     "urban": 940
   },
+  "antenna_map_counts": {
+    "high_ant": 866,
+    "low_ant": 846,
+    "mid_ant": 878
+  },
+  "topology_antenna_map_counts": {
+    "suburban|low_ant": 484,
+    "suburban|mid_ant": 468,
+    "suburban|high_ant": 503,
+    "urban|low_ant": 301,
+    "urban|mid_ant": 335,
+    "urban|high_ant": 304,
+    "dense_urban|low_ant": 61,
+    "dense_urban|mid_ant": 75,
+    "dense_urban|high_ant": 59
+  },
   "reproduction_checks": {
     "with_rho_phi": 1.928749619998359,
     "without_rho_phi": 3.7292385336740956

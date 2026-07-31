@@ -46,6 +46,13 @@ COMBINATIONS = (
     ("with_rho_phi", True),
     ("without_rho_phi", False),
 )
+TOPOLOGIES = ("suburban", "urban", "dense_urban")
+ANTENNA_BINS = ("low_ant", "mid_ant", "high_ant")
+ANTENNA_RULES = {
+    "low_ant": "hTx <= 58.12 m",
+    "mid_ant": "58.12 m < hTx <= 103.85 m",
+    "high_ant": "hTx > 103.85 m",
+}
 
 
 def import_reference_modules(reference_dir: Path):
@@ -187,6 +194,62 @@ def write_markdown(path: Path, rows: Sequence[Mapping[str, object]]) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def write_antenna_markdown(
+    path: Path,
+    topology_rows: Sequence[Mapping[str, object]],
+    global_rows: Sequence[Mapping[str, object]],
+) -> None:
+    lines = [
+        "# RMSE by new ITU topology and antenna-height bin",
+        "",
+        "All values use the coherent two-ray model with rho, phi, bias, and the",
+        "recalibrated radial correction. RMSE is pixel-weighted over the official",
+        "2,590-map test split, with building pixels excluded.",
+        "",
+        "## New ITU topology x antenna bin (9 groups)",
+        "",
+        "| Topology | Antenna bin | Height rule | Maps | Overall RMSE | LoS RMSE | NLoS RMSE |",
+        "|---|---|---|---:|---:|---:|---:|",
+    ]
+    topology_order = {name: index for index, name in enumerate(TOPOLOGIES)}
+    antenna_order = {name: index for index, name in enumerate(ANTENNA_BINS)}
+    for row in sorted(
+        topology_rows,
+        key=lambda item: (
+            topology_order[str(item["topology"])],
+            antenna_order[str(item["antenna_bin"])],
+        ),
+    ):
+        topology = str(row["topology"]).replace("_", " ").title()
+        antenna = str(row["antenna_bin"]).replace("_ant", "").title()
+        lines.append(
+            f"| {topology} | {antenna} | {row['height_rule']} | "
+            f"{int(row['maps']):,} | {float(row['overall_rmse_db']):.6f} | "
+            f"{float(row['los_rmse_db']):.6f} | {float(row['nlos_rmse_db']):.6f} |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Global antenna bins (3 groups)",
+            "",
+            "| Antenna bin | Height rule | Maps | Overall RMSE | LoS RMSE | NLoS RMSE |",
+            "|---|---|---:|---:|---:|---:|",
+        ]
+    )
+    for row in sorted(
+        global_rows,
+        key=lambda item: antenna_order[str(item["antenna_bin"])],
+    ):
+        antenna = str(row["antenna_bin"]).replace("_ant", "").title()
+        lines.append(
+            f"| {antenna} | {row['height_rule']} | {int(row['maps']):,} | "
+            f"{float(row['overall_rmse_db']):.6f} | "
+            f"{float(row['los_rmse_db']):.6f} | {float(row['nlos_rmse_db']):.6f} |"
+        )
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--hdf5", type=Path, default=DEFAULT_HDF5)
@@ -238,7 +301,22 @@ def main() -> None:
         }
         for combination, _ in COMBINATIONS
     }
+    topology_antenna_statistics = {
+        (topology, antenna_bin): {
+            region: fresh_stats() for region in ("overall", "los", "nlos")
+        }
+        for topology in TOPOLOGIES
+        for antenna_bin in ANTENNA_BINS
+    }
+    global_antenna_statistics = {
+        antenna_bin: {
+            region: fresh_stats() for region in ("overall", "los", "nlos")
+        }
+        for antenna_bin in ANTENNA_BINS
+    }
     map_counts: Counter[str] = Counter()
+    topology_antenna_map_counts: Counter[tuple[str, str]] = Counter()
+    antenna_map_counts: Counter[str] = Counter()
 
     with h5py.File(str(args.hdf5), "r") as handle:
         for number, reference in enumerate(test_refs, start=1):
@@ -252,6 +330,8 @@ def main() -> None:
 
             height = reference.uav_height_m
             antenna_bin = hybrid_ref.ant_bin(height)
+            topology_antenna_map_counts[(topology, antenna_bin)] += 1
+            antenna_map_counts[antenna_bin] += 1
             regime = hybrid_ref.regime_key(topology, "NLoS", antenna_bin)
             cost231 = compute_cost231_map(height, hybrid_ref)
             features = hybrid_ref.compute_pixel_features(
@@ -279,6 +359,18 @@ def main() -> None:
                     add_error(statistics[combination][scope]["overall"], prediction, target, valid)
                     add_error(statistics[combination][scope]["los"], prediction, target, los)
                     add_error(statistics[combination][scope]["nlos"], prediction, target, nlos)
+                if use_rho_phi:
+                    topology_bundle = topology_antenna_statistics[
+                        (topology, antenna_bin)
+                    ]
+                    antenna_bundle = global_antenna_statistics[antenna_bin]
+                    for region, mask in (
+                        ("overall", valid),
+                        ("los", los),
+                        ("nlos", nlos),
+                    ):
+                        add_error(topology_bundle[region], prediction, target, mask)
+                        add_error(antenna_bundle[region], prediction, target, mask)
 
             if number % max(args.log_every, 1) == 0 or number == len(test_refs):
                 print(f"evaluate test [{number}/{len(test_refs)}]", flush=True)
@@ -319,6 +411,63 @@ def main() -> None:
 
     write_csv(args.out_dir / "rho_phi_rmse.csv", rows)
     write_markdown(args.out_dir / "rho_phi_rmse.md", rows)
+
+    topology_antenna_rows = []
+    for topology in TOPOLOGIES:
+        for antenna_bin in ANTENNA_BINS:
+            bundle = topology_antenna_statistics[(topology, antenna_bin)]
+            topology_antenna_rows.append(
+                {
+                    "scope": "topology_antenna",
+                    "topology": topology,
+                    "antenna_bin": antenna_bin,
+                    "height_rule": ANTENNA_RULES[antenna_bin],
+                    "maps": topology_antenna_map_counts[(topology, antenna_bin)],
+                    "overall_rmse_db": rmse(bundle["overall"]),
+                    "los_rmse_db": rmse(bundle["los"]),
+                    "nlos_rmse_db": rmse(bundle["nlos"]),
+                    "overall_pixels": int(bundle["overall"]["n"]),
+                    "los_pixels": int(bundle["los"]["n"]),
+                    "nlos_pixels": int(bundle["nlos"]["n"]),
+                }
+            )
+    global_antenna_rows = []
+    for antenna_bin in ANTENNA_BINS:
+        bundle = global_antenna_statistics[antenna_bin]
+        global_antenna_rows.append(
+            {
+                "scope": "global_antenna",
+                "topology": "all",
+                "antenna_bin": antenna_bin,
+                "height_rule": ANTENNA_RULES[antenna_bin],
+                "maps": antenna_map_counts[antenna_bin],
+                "overall_rmse_db": rmse(bundle["overall"]),
+                "los_rmse_db": rmse(bundle["los"]),
+                "nlos_rmse_db": rmse(bundle["nlos"]),
+                "overall_pixels": int(bundle["overall"]["n"]),
+                "los_pixels": int(bundle["los"]["n"]),
+                "nlos_pixels": int(bundle["nlos"]["n"]),
+            }
+        )
+
+    for region in ("overall", "los", "nlos"):
+        expected_sse = float(statistics["with_rho_phi"]["global"][region]["sse"])
+        expected_n = int(statistics["with_rho_phi"]["global"][region]["n"])
+        for grouped in (topology_antenna_statistics, global_antenna_statistics):
+            grouped_sse = sum(float(bundle[region]["sse"]) for bundle in grouped.values())
+            grouped_n = sum(int(bundle[region]["n"]) for bundle in grouped.values())
+            if grouped_n != expected_n or not math.isclose(
+                grouped_sse, expected_sse, rel_tol=1e-12, abs_tol=1e-6
+            ):
+                raise RuntimeError(f"antenna aggregation check failed for {region}")
+
+    antenna_rows = topology_antenna_rows + global_antenna_rows
+    write_csv(args.out_dir / "rho_phi_with_antenna_rmse.csv", antenna_rows)
+    write_antenna_markdown(
+        args.out_dir / "rho_phi_with_antenna_rmse.md",
+        topology_antenna_rows,
+        global_antenna_rows,
+    )
     metadata = {
         "split": {
             "source": "Try 74/75 compatible split_city_holdout_try80",
@@ -335,6 +484,14 @@ def main() -> None:
             "building_pixels": "excluded from every metric",
         },
         "topology_map_counts": dict(sorted(map_counts.items())),
+        "antenna_map_counts": dict(sorted(antenna_map_counts.items())),
+        "topology_antenna_map_counts": {
+            f"{topology}|{antenna_bin}": topology_antenna_map_counts[
+                (topology, antenna_bin)
+            ]
+            for topology in TOPOLOGIES
+            for antenna_bin in ANTENNA_BINS
+        },
         "reproduction_checks": expected,
     }
     (args.out_dir / "rho_phi_metadata.json").write_text(
