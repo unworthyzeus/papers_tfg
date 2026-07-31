@@ -1,0 +1,41 @@
+{
+  "comparison": "one connected-footprint mean height versus one connected-footprint maximum height",
+  "gamma_estimator_in_both_runs": "sqrt(mean(building_height_observation^2)/2)",
+  "splits": {
+    "train": {
+      "maps": 10840,
+      "nonzero_gamma_maps": 10805,
+      "mean_gamma_old_m": 10.492607129325384,
+      "mean_gamma_new_m": 11.132084195211521,
+      "mean_nonzero_gamma_ratio": 1.063669847611463,
+      "changed_assignments": 140,
+      "transitions": {
+        "suburban_to_urban": 120,
+        "urban_to_dense_urban": 20
+      }
+    },
+    "validation": {
+      "maps": 2750,
+      "nonzero_gamma_maps": 2750,
+      "mean_gamma_old_m": 7.651716025205788,
+      "mean_gamma_new_m": 8.054016705293417,
+      "mean_nonzero_gamma_ratio": 1.0503331268451455,
+      "changed_assignments": 35,
+      "transitions": {
+        "suburban_to_urban": 25,
+        "urban_to_dense_urban": 10
+      }
+    },
+    "test": {
+      "maps": 2590,
+      "nonzero_gamma_maps": 2585,
+      "mean_gamma_old_m": 8.91665420329697,
+      "mean_gamma_new_m": 9.410766774796334,
+      "mean_nonzero_gamma_ratio": 1.0475728771243171,
+      "changed_assignments": 15,
+      "transitions": {
+        "suburban_to_urban": 15
+      }
+    }
+  }
+}

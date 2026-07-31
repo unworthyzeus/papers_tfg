@@ -1,0 +1,56 @@
+{
+  "los": {
+    "formula": "PL_LoS = FSPL + r(d2D, hTx)",
+    "training_maps": 10840,
+    "height_bin_m": 5.0,
+    "residual_target": "path_loss - FSPL on valid LoS ground pixels",
+    "excluded_parameters": [
+      "rho",
+      "phi",
+      "two_ray_bias"
+    ],
+    "topology_conditioning": null
+  },
+  "nlos": {
+    "status": "frozen to isolate the LoS ablation",
+    "regime_source": "C:\\TFG\\papers_tfg\\experiments\\itu_topology_ablation\\results\\itu3\\nlos_regime_calibration_itu.json",
+    "global_source": "C:\\TFG\\papers_tfg\\experiments\\itu_topology_ablation\\results\\itu3\\nlos_global_calibration_official.json",
+    "regime_model_type": "regime_nlos_ridge_cost231_itu3",
+    "global_model_type": "global_nlos_ridge_cost231"
+  },
+  "topology_routing": {
+    "mode": "itu3",
+    "prototypes": {
+      "suburban": {
+        "alpha": 0.1,
+        "beta_buildings_per_km2": 750.0,
+        "gamma_mode_m": 8.0
+      },
+      "urban": {
+        "alpha": 0.3,
+        "beta_buildings_per_km2": 500.0,
+        "gamma_mode_m": 15.0
+      },
+      "dense_urban": {
+        "alpha": 0.5,
+        "beta_buildings_per_km2": 300.0,
+        "gamma_mode_m": 20.0
+      },
+      "urban_highrise": {
+        "alpha": 0.5,
+        "beta_buildings_per_km2": 300.0,
+        "gamma_mode_m": 50.0
+      }
+    },
+    "assignment": "minimum equal-weight log-ratio distance to the four prototypes",
+    "routing_merge": "urban_highrise is merged into dense_urban",
+    "building_footprints": {
+      "method": "connected components on topology > 0",
+      "connectivity": 4,
+      "minimum_component_area_m2": 1.0,
+      "known_limitation": "touching raster footprints can be merged"
+    },
+    "gamma_estimator": "Rayleigh maximum-likelihood scale sqrt(mean(component_mean_height^2)/2)",
+    "meters_per_pixel": 1.0
+  }
+}

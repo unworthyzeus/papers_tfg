@@ -1,0 +1,48 @@
+{
+  "previous": "C:\\TFG\\papers_tfg\\experiments\\itu_topology_ablation\\results\\itu3\\official_test_per_map_metrics.csv",
+  "current": "C:\\TFG\\papers_tfg\\experiments\\los_radial_only_itu3_ablation\\results\\radial_only_itu3\\official_test_per_map_metrics.csv",
+  "aggregation": "pixel-weighted from per-map SSE, building pixels excluded",
+  "same_test_samples": true,
+  "same_topology_assignment": true,
+  "results": [
+    {
+      "topology": "dense_urban",
+      "maps": 195,
+      "overall_rmse_two_ray_plus_r_db": 2.570569156241668,
+      "overall_rmse_fspl_plus_refitted_r_db": 4.044861625168648,
+      "overall_rmse_delta_db": 1.4742924689269796,
+      "los_rmse_two_ray_plus_r_db": 2.1126315689525788,
+      "los_rmse_fspl_plus_refitted_r_db": 4.0275046789030675,
+      "los_rmse_delta_db": 1.9148731099504888,
+      "nlos_rmse_two_ray_plus_r_db": 4.1282721497550385,
+      "nlos_rmse_fspl_plus_refitted_r_db": 4.1282721497550385,
+      "nlos_rmse_delta_db": 0.0
+    },
+    {
+      "topology": "suburban",
+      "maps": 1470,
+      "overall_rmse_two_ray_plus_r_db": 1.7010134614014285,
+      "overall_rmse_fspl_plus_refitted_r_db": 3.687411698020296,
+      "overall_rmse_delta_db": 1.9863982366188673,
+      "los_rmse_two_ray_plus_r_db": 1.6070458938886083,
+      "los_rmse_fspl_plus_refitted_r_db": 3.7083862537920727,
+      "los_rmse_delta_db": 2.1013403599034643,
+      "nlos_rmse_two_ray_plus_r_db": 3.167612723936046,
+      "nlos_rmse_fspl_plus_refitted_r_db": 3.167612723936046,
+      "nlos_rmse_delta_db": 0.0
+    },
+    {
+      "topology": "urban",
+      "maps": 925,
+      "overall_rmse_two_ray_plus_r_db": 2.300857472075248,
+      "overall_rmse_fspl_plus_refitted_r_db": 3.7718516669312856,
+      "overall_rmse_delta_db": 1.4709941948560377,
+      "los_rmse_two_ray_plus_r_db": 1.9993953989172804,
+      "los_rmse_fspl_plus_refitted_r_db": 3.7914366645530175,
+      "los_rmse_delta_db": 1.7920412656357372,
+      "nlos_rmse_two_ray_plus_r_db": 3.648400737886628,
+      "nlos_rmse_fspl_plus_refitted_r_db": 3.648400737886628,
+      "nlos_rmse_delta_db": 0.0
+    }
+  ]
+}

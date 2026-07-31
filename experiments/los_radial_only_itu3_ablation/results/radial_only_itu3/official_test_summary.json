@@ -1,0 +1,407 @@
+{
+  "generated_utc": "2026-07-31T09:36:05Z",
+  "split_contract": {
+    "source": "Try 74/75 compatible split_city_holdout_try80",
+    "split_seed": 42,
+    "train_maps": 10840,
+    "validation_maps": 2750,
+    "test_maps": 2590,
+    "train_cities": [
+      "Abidjan",
+      "Abu Dhabi",
+      "Alexandria",
+      "Antigua Guatemala",
+      "Athens",
+      "Bangalore",
+      "Bangkok",
+      "Bath",
+      "Berlin",
+      "Bratislava",
+      "Brugge",
+      "Buenos Aires",
+      "Canberra",
+      "Chefchaouen",
+      "Dalian",
+      "Hanoi",
+      "Ho Chi Minh City",
+      "Hyderabad",
+      "Kinshasa",
+      "Leuven",
+      "Ljubljana",
+      "Luanda",
+      "Lyon",
+      "Manaus",
+      "Minsk",
+      "Nagpur",
+      "Paris",
+      "Rio de Janeiro",
+      "Santiago",
+      "Shanghai",
+      "Siem Reap",
+      "St. Louis",
+      "Thane",
+      "Toledo",
+      "Valparaiso",
+      "Venice",
+      "Vienna"
+    ],
+    "validation_cities": [
+      "Bilbao",
+      "Chiang Mai",
+      "Cleveland",
+      "Dhaka",
+      "Dubrovnik",
+      "Fortaleza",
+      "Marrakesh",
+      "Mexico City",
+      "Munich",
+      "Nazareth",
+      "Nice",
+      "Salvador",
+      "Segovia",
+      "Tunis",
+      "Victoria"
+    ],
+    "test_cities": [
+      "Barcelona",
+      "Beijing",
+      "Carcassonne",
+      "Copenhagen",
+      "Halifax",
+      "Jaipur",
+      "Johannesburg",
+      "Key West",
+      "Kuala Lumpur",
+      "Osaka",
+      "Phuket",
+      "Pune",
+      "Surat",
+      "Vancouver"
+    ],
+    "calibration_membership": "training cities only"
+  },
+  "final_variant": {
+    "name": "regime_nlos_ridge",
+    "selection_reason": "pre-specified removal of rho and phi with r refitted from FSPL on training cities only; frozen ITU 3 NLoS coefficients",
+    "test_metrics": {
+      "split": "test",
+      "variant": "regime_nlos_ridge",
+      "label": "FSPL + refitted radial LoS + frozen itu3 NLoS ridge",
+      "overall_rmse_db": 3.7292375225986727,
+      "overall_mae_db": 2.9328549769508268,
+      "overall_pixels": 423087119,
+      "los_rmse_db": 3.7443499842355665,
+      "los_mae_db": 2.9677887331891646,
+      "los_pixels": 391721805,
+      "nlos_rmse_db": 3.5350600626317146,
+      "nlos_mae_db": 2.4965668515039816,
+      "nlos_pixels": 31365314,
+      "map_correlation": 0.7292912099972572,
+      "maps": 2590
+    }
+  },
+  "topology_routing": {
+    "contract": {
+      "mode": "itu3",
+      "prototypes": {
+        "suburban": {
+          "alpha": 0.1,
+          "beta_buildings_per_km2": 750.0,
+          "gamma_mode_m": 8.0
+        },
+        "urban": {
+          "alpha": 0.3,
+          "beta_buildings_per_km2": 500.0,
+          "gamma_mode_m": 15.0
+        },
+        "dense_urban": {
+          "alpha": 0.5,
+          "beta_buildings_per_km2": 300.0,
+          "gamma_mode_m": 20.0
+        },
+        "urban_highrise": {
+          "alpha": 0.5,
+          "beta_buildings_per_km2": 300.0,
+          "gamma_mode_m": 50.0
+        }
+      },
+      "assignment": "minimum equal-weight log-ratio distance to the four prototypes",
+      "routing_merge": "urban_highrise is merged into dense_urban",
+      "building_footprints": {
+        "method": "connected components on topology > 0",
+        "connectivity": 4,
+        "minimum_component_area_m2": 1.0,
+        "known_limitation": "touching raster footprints can be merged"
+      },
+      "gamma_estimator": "Rayleigh maximum-likelihood scale sqrt(mean(component_mean_height^2)/2)",
+      "meters_per_pixel": 1.0
+    },
+    "splits": {
+      "train": {
+        "cities": 37,
+        "maps": 10840,
+        "cities_with_routed_environment": {
+          "dense_urban": 17,
+          "suburban": 37,
+          "urban": 36
+        },
+        "routed_map_counts": {
+          "dense_urban": 925,
+          "suburban": 4715,
+          "urban": 5200
+        },
+        "cities_with_raw_environment": {
+          "dense_urban": 16,
+          "suburban": 37,
+          "urban": 36,
+          "urban_highrise": 4
+        },
+        "raw_map_counts": {
+          "dense_urban": 845,
+          "suburban": 4715,
+          "urban": 5200,
+          "urban_highrise": 80
+        }
+      },
+      "validation": {
+        "cities": 15,
+        "maps": 2750,
+        "cities_with_routed_environment": {
+          "dense_urban": 7,
+          "suburban": 15,
+          "urban": 14
+        },
+        "routed_map_counts": {
+          "dense_urban": 245,
+          "suburban": 1410,
+          "urban": 1095
+        },
+        "cities_with_raw_environment": {
+          "dense_urban": 7,
+          "suburban": 15,
+          "urban": 14,
+          "urban_highrise": 1
+        },
+        "raw_map_counts": {
+          "dense_urban": 240,
+          "suburban": 1410,
+          "urban": 1095,
+          "urban_highrise": 5
+        }
+      },
+      "test": {
+        "cities": 14,
+        "maps": 2590,
+        "cities_with_routed_environment": {
+          "dense_urban": 6,
+          "suburban": 14,
+          "urban": 14
+        },
+        "routed_map_counts": {
+          "dense_urban": 195,
+          "suburban": 1470,
+          "urban": 925
+        },
+        "cities_with_raw_environment": {
+          "dense_urban": 6,
+          "suburban": 14,
+          "urban": 14,
+          "urban_highrise": 1
+        },
+        "raw_map_counts": {
+          "dense_urban": 190,
+          "suburban": 1470,
+          "urban": 925,
+          "urban_highrise": 5
+        }
+      }
+    },
+    "unique_topology_rasters": 3229
+  },
+  "visibility_shares": {
+    "full_cells": 681607710,
+    "ground_cells": 545568250,
+    "building_cells": 136039460,
+    "valid_ground_cells": 423087119,
+    "invalid_ground_cells": 122481131,
+    "los_ground_cells": 391721805,
+    "nlos_ground_cells": 153846445,
+    "valid_los_cells": 391721805,
+    "valid_nlos_cells": 31365314,
+    "los_share_ground": 0.7180069679641364,
+    "nlos_share_ground": 0.2819930320358635,
+    "los_share_valid_ground": 0.9258655898715744,
+    "nlos_share_valid_ground": 0.07413441012842559,
+    "building_share_full_map": 0.19958615198176088,
+    "invalid_ground_share_ground": 0.2245019408662436,
+    "per_map_nlos_share_valid_quantiles": {
+      "min": 0.0,
+      "q25": 0.013499356032184627,
+      "median": 0.05515487879940436,
+      "q75": 0.1726949046805432,
+      "q95": 0.4199323977385218,
+      "max": 1.0
+    },
+    "per_map_nlos_share_ground_quantiles": {
+      "min": 0.0,
+      "q25": 0.11432488149934739,
+      "median": 0.24512448088197378,
+      "q75": 0.4579104470032866,
+      "q95": 0.7909244243863683,
+      "max": 1.0
+    }
+  },
+  "city_bootstrap": {
+    "unit": "held-out city",
+    "cities": 14,
+    "draws": 20000,
+    "seed": 20260715,
+    "method": "percentile bootstrap, cities sampled with replacement; pixel-weighted metrics recomputed",
+    "intervals": {
+      "overall_rmse_db": {
+        "low_95": 3.517975074111742,
+        "median": 3.7364020858115485,
+        "high_95": 3.858290878838718
+      },
+      "overall_mae_db": {
+        "low_95": 2.7315255327617156,
+        "median": 2.9399633005958776,
+        "high_95": 3.0510522417485304
+      },
+      "los_rmse_db": {
+        "low_95": 3.5280185489882605,
+        "median": 3.7514372364732296,
+        "high_95": 3.86768238960869
+      },
+      "los_mae_db": {
+        "low_95": 2.7585512412210784,
+        "median": 2.975597632544903,
+        "high_95": 3.0866662583357547
+      },
+      "nlos_rmse_db": {
+        "low_95": 3.2338388740670974,
+        "median": 3.5175422657022315,
+        "high_95": 3.8457166440117048
+      },
+      "nlos_mae_db": {
+        "low_95": 2.265335357837379,
+        "median": 2.481997721461732,
+        "high_95": 2.7559906259006133
+      },
+      "macro_city_rmse_db": {
+        "low_95": 3.4698964111719324,
+        "median": 3.685709063487492,
+        "high_95": 3.83503627029251
+      },
+      "map_correlation": {
+        "low_95": 0.7110854779023369,
+        "median": 0.7290934106664171,
+        "high_95": 0.7561492381774049
+      }
+    }
+  },
+  "macro_city_rmse_db": 3.6813839846396745,
+  "visibility_contract": {
+    "source": "binary LineOfSight output from the configured MATLAB ray tracer, stored with each HDF5 sample",
+    "identity_key": "city geometry, transmitter position and height, receiver grid, and ray-tracing settings",
+    "receiver_support": "topology_map == 0; building pixels are excluded before LoS/NLoS shares and metrics"
+  },
+  "runtime": {
+    "maps": 100,
+    "hardware": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
+      "python": "3.12.10",
+      "numpy": "2.4.4"
+    },
+    "scope": "HDF5 read measured separately; core computes FSPL plus refitted radial LoS and frozen ITU 3 COST231 ridge NLoS",
+    "hdf5_read_median_s": 0.003980649998993613,
+    "hdf5_read_p95_s": 0.0046958450006059135,
+    "prior_core_median_s": 0.04486850000012055,
+    "prior_core_p95_s": 0.051339364999603274,
+    "external_ray_tracing_reference": {
+      "maps": 5,
+      "seed": 20260715,
+      "median_s_per_map": 102.2887378,
+      "mean_s_per_map": 142.85610778,
+      "p95_s_per_map": 241.59120804,
+      "min_s_per_map": 91.4517301,
+      "max_s_per_map": 260.3095472,
+      "hardware": "AMD Ryzen 5 5600X CPU; GPU disabled for both measured paths",
+      "software": "MATLAB R2024b Update 1",
+      "configuration": {
+        "city": "Barcelona",
+        "transmitter_heights_per_layout": 1,
+        "receiver_grid_resolution_m": 1,
+        "max_reflections": 1,
+        "max_diffractions": 0
+      },
+      "scope": "attenuation, delay spread, and angular spread",
+      "visibility_repeat_audit": {
+        "conditions": 5,
+        "receiver_comparisons": 742392,
+        "bit_differences": 0,
+        "all_equal": true,
+        "identity_key": "city geometry, transmitter position and height, receiver grid, and ray-tracing settings"
+      },
+      "raw_median_wall_clock_ratio_vs_prior": 2279.744983668391,
+      "comparability": "same CPU and spatial resolution, but different output scope and timing boundaries; the ratio is not a like-for-like algorithmic speedup"
+    }
+  },
+  "fit_contract": {
+    "los": {
+      "formula": "PL_LoS = FSPL + r(d2D, hTx)",
+      "training_maps": 10840,
+      "height_bin_m": 5.0,
+      "residual_target": "path_loss - FSPL on valid LoS ground pixels",
+      "excluded_parameters": [
+        "rho",
+        "phi",
+        "two_ray_bias"
+      ],
+      "topology_conditioning": null
+    },
+    "nlos": {
+      "status": "frozen to isolate the LoS ablation",
+      "regime_source": "C:\\TFG\\papers_tfg\\experiments\\itu_topology_ablation\\results\\itu3\\nlos_regime_calibration_itu.json",
+      "global_source": "C:\\TFG\\papers_tfg\\experiments\\itu_topology_ablation\\results\\itu3\\nlos_global_calibration_official.json",
+      "regime_model_type": "regime_nlos_ridge_cost231_itu3",
+      "global_model_type": "global_nlos_ridge_cost231"
+    },
+    "topology_routing": {
+      "mode": "itu3",
+      "prototypes": {
+        "suburban": {
+          "alpha": 0.1,
+          "beta_buildings_per_km2": 750.0,
+          "gamma_mode_m": 8.0
+        },
+        "urban": {
+          "alpha": 0.3,
+          "beta_buildings_per_km2": 500.0,
+          "gamma_mode_m": 15.0
+        },
+        "dense_urban": {
+          "alpha": 0.5,
+          "beta_buildings_per_km2": 300.0,
+          "gamma_mode_m": 20.0
+        },
+        "urban_highrise": {
+          "alpha": 0.5,
+          "beta_buildings_per_km2": 300.0,
+          "gamma_mode_m": 50.0
+        }
+      },
+      "assignment": "minimum equal-weight log-ratio distance to the four prototypes",
+      "routing_merge": "urban_highrise is merged into dense_urban",
+      "building_footprints": {
+        "method": "connected components on topology > 0",
+        "connectivity": 4,
+        "minimum_component_area_m2": 1.0,
+        "known_limitation": "touching raster footprints can be merged"
+      },
+      "gamma_estimator": "Rayleigh maximum-likelihood scale sqrt(mean(component_mean_height^2)/2)",
+      "meters_per_pixel": 1.0
+    }
+  }
+}

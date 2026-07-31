@@ -1,0 +1,62 @@
+{
+  "baseline": "C:\\TFG\\papers_tfg\\drafts\\conference_attenuation_priors\\data\\official_split_analysis\\official_test_summary.json",
+  "candidate": "C:\\TFG\\papers_tfg\\experiments\\itu_topology_ablation\\results\\itu3\\official_test_summary.json",
+  "metrics": [
+    {
+      "metric": "overall_rmse_db",
+      "official_current": 1.927716511197784,
+      "itu_candidate": 1.9287476650827093,
+      "itu_minus_current": 0.001031153884925251
+    },
+    {
+      "metric": "los_rmse_db",
+      "official_current": 1.7370444115023174,
+      "itu_candidate": 1.7370444115023174,
+      "itu_minus_current": 0.0
+    },
+    {
+      "metric": "nlos_rmse_db",
+      "official_current": 3.5274649722355673,
+      "itu_candidate": 3.5350600626317146,
+      "itu_minus_current": 0.007595090396147253
+    },
+    {
+      "metric": "overall_mae_db",
+      "official_current": 1.215073602053148,
+      "itu_candidate": 1.2170149308029061,
+      "itu_minus_current": 0.0019413287497580534
+    },
+    {
+      "metric": "nlos_mae_db",
+      "official_current": 2.470380243336532,
+      "itu_candidate": 2.4965668515039816,
+      "itu_minus_current": 0.026186608167449776
+    }
+  ],
+  "per_city_summary": {
+    "overall_rmse_db": {
+      "improved_cities": 7,
+      "worsened_cities": 7,
+      "equal_cities": 0,
+      "mean_city_delta": 0.0005308522905452648
+    },
+    "nlos_rmse_db": {
+      "improved_cities": 7,
+      "worsened_cities": 7,
+      "equal_cities": 0,
+      "mean_city_delta": 0.012550896941776848
+    },
+    "overall_mae_db": {
+      "improved_cities": 8,
+      "worsened_cities": 6,
+      "equal_cities": 0,
+      "mean_city_delta": 0.00034052331784254327
+    },
+    "nlos_mae_db": {
+      "improved_cities": 8,
+      "worsened_cities": 6,
+      "equal_cities": 0,
+      "mean_city_delta": 0.02163755610145557
+    }
+  }
+}

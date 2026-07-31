@@ -1,0 +1,121 @@
+{
+  "contract": {
+    "mode": "itu3",
+    "prototypes": {
+      "suburban": {
+        "alpha": 0.1,
+        "beta_buildings_per_km2": 750.0,
+        "gamma_mode_m": 8.0
+      },
+      "urban": {
+        "alpha": 0.3,
+        "beta_buildings_per_km2": 500.0,
+        "gamma_mode_m": 15.0
+      },
+      "dense_urban": {
+        "alpha": 0.5,
+        "beta_buildings_per_km2": 300.0,
+        "gamma_mode_m": 20.0
+      },
+      "urban_highrise": {
+        "alpha": 0.5,
+        "beta_buildings_per_km2": 300.0,
+        "gamma_mode_m": 50.0
+      }
+    },
+    "assignment": "minimum equal-weight log-ratio distance to the four prototypes",
+    "routing_merge": "urban_highrise is merged into dense_urban",
+    "building_footprints": {
+      "method": "connected components on topology > 0",
+      "connectivity": 4,
+      "minimum_component_area_m2": 1.0,
+      "known_limitation": "touching raster footprints can be merged"
+    },
+    "gamma_definition": "ITU-R P.1410-6 Rayleigh mode of the building-height distribution",
+    "building_height_observation": "one observation per connected footprint, equal to its maximum raster height",
+    "gamma_estimator": "Rayleigh maximum-likelihood scale sqrt(mean(building_max_height^2)/2)",
+    "raster_interpretation_note": "P.1410-6 defines a building-height distribution but does not prescribe mean-versus-maximum reduction for an irregular height raster",
+    "meters_per_pixel": 1.0
+  },
+  "splits": {
+    "train": {
+      "cities": 37,
+      "maps": 10840,
+      "cities_with_routed_environment": {
+        "dense_urban": 17,
+        "suburban": 37,
+        "urban": 36
+      },
+      "routed_map_counts": {
+        "dense_urban": 945,
+        "suburban": 4595,
+        "urban": 5300
+      },
+      "cities_with_raw_environment": {
+        "dense_urban": 16,
+        "suburban": 37,
+        "urban": 36,
+        "urban_highrise": 4
+      },
+      "raw_map_counts": {
+        "dense_urban": 855,
+        "suburban": 4595,
+        "urban": 5300,
+        "urban_highrise": 90
+      }
+    },
+    "validation": {
+      "cities": 15,
+      "maps": 2750,
+      "cities_with_routed_environment": {
+        "dense_urban": 7,
+        "suburban": 15,
+        "urban": 14
+      },
+      "routed_map_counts": {
+        "dense_urban": 255,
+        "suburban": 1385,
+        "urban": 1110
+      },
+      "cities_with_raw_environment": {
+        "dense_urban": 7,
+        "suburban": 15,
+        "urban": 14,
+        "urban_highrise": 1
+      },
+      "raw_map_counts": {
+        "dense_urban": 250,
+        "suburban": 1385,
+        "urban": 1110,
+        "urban_highrise": 5
+      }
+    },
+    "test": {
+      "cities": 14,
+      "maps": 2590,
+      "cities_with_routed_environment": {
+        "dense_urban": 6,
+        "suburban": 14,
+        "urban": 14
+      },
+      "routed_map_counts": {
+        "dense_urban": 195,
+        "suburban": 1455,
+        "urban": 940
+      },
+      "cities_with_raw_environment": {
+        "dense_urban": 6,
+        "suburban": 14,
+        "urban": 14,
+        "urban_highrise": 1
+      },
+      "raw_map_counts": {
+        "dense_urban": 190,
+        "suburban": 1455,
+        "urban": 940,
+        "urban_highrise": 5
+      }
+    }
+  },
+  "unique_topology_rasters": 3229
+}
