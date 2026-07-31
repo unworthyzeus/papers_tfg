@@ -1,9 +1,8 @@
-"""Evaluate the 2 x 2 rho/phi and ITU-routing ablation on official test cities.
+"""Evaluate the rho/phi ablation on the official test cities.
 
-Every row keeps a recalibrated radial correction ``r(d2D, hTx)``. The first
-factor changes whether the coherent two-ray rho, phi, and bias terms are
-present. The second changes whether NLoS uses the three ITU topology-specific
-ridge calibrations or one global ridge calibration.
+Every row keeps a recalibrated radial correction ``r(d2D, hTx)`` and the same
+three-class ITU-conditioned NLoS calibration. The only change is whether the
+coherent two-ray rho, phi, and bias terms are present.
 
 No fitting is performed here. All calibrations were fitted previously on the
 10,840 official training maps. This evaluator only reads the official test
@@ -40,15 +39,12 @@ DEFAULT_REFERENCE_DIR = (
 )
 DEFAULT_TWO_RAY_DIR = EXPERIMENT_ROOT / "results" / "two_ray_itu3_building_max"
 DEFAULT_RADIAL_DIR = EXPERIMENT_ROOT / "results" / "radial_only_itu3_building_max"
-DEFAULT_OUTPUT = EXPERIMENT_ROOT / "results" / "rho_phi_itu_factorial"
+DEFAULT_OUTPUT = EXPERIMENT_ROOT / "results" / "rho_phi_ablation"
 FINAL_FEATURES = tuple(range(1, 15))
-GLOBAL_KEY = "all|NLoS|all_ant"
 
 COMBINATIONS = (
-    ("with_rho_phi_with_itu", True, True),
-    ("with_rho_phi_without_itu", True, False),
-    ("without_rho_phi_with_itu", False, True),
-    ("without_rho_phi_without_itu", False, False),
+    ("with_rho_phi", True),
+    ("without_rho_phi", False),
 )
 
 
@@ -158,20 +154,20 @@ def write_csv(path: Path, rows: Sequence[Mapping[str, object]]) -> None:
 
 def write_markdown(path: Path, rows: Sequence[Mapping[str, object]]) -> None:
     lines = [
-        "# Rho/Phi and ITU topology factorial ablation",
+        "# Rho/Phi ablation with fixed ITU topology conditioning",
         "",
         "All values are pixel-weighted RMSE in dB on the 2,590 official held-out test maps.",
         "Buildings are excluded. Every variant includes a radial correction `r(d2D, hTx)`",
         "recalibrated on the 10,840 official training maps.",
         "",
-        "`Without ITU` means one global NLoS ridge calibration. `With ITU` means",
-        "three topology-specific NLoS ridge calibrations with per-sample routing.",
+        "Both rows use the same three topology-specific NLoS ridge calibrations",
+        "with per-sample ITU routing. Only rho, phi, and the two-ray bias change.",
         "",
-        "| Scope | Rho/Phi | ITU topology | Maps | Overall RMSE | LoS RMSE | NLoS RMSE |",
-        "|---|---|---|---:|---:|---:|---:|",
+        "| Scope | Rho/Phi | Maps | Overall RMSE | LoS RMSE | NLoS RMSE |",
+        "|---|---|---:|---:|---:|---:|",
     ]
     scope_order = {"global": 0, "suburban": 1, "urban": 2, "dense_urban": 3}
-    combination_order = {name: idx for idx, (name, _, _) in enumerate(COMBINATIONS)}
+    combination_order = {name: idx for idx, (name, _) in enumerate(COMBINATIONS)}
     ordered = sorted(
         rows,
         key=lambda row: (
@@ -182,9 +178,8 @@ def write_markdown(path: Path, rows: Sequence[Mapping[str, object]]) -> None:
     for row in ordered:
         scope = str(row["scope"]).replace("_", " ").title()
         rho_phi = "With" if row["rho_phi"] == "with" else "Without"
-        itu = "With" if row["itu_topology"] == "with" else "Without"
         lines.append(
-            f"| {scope} | {rho_phi} | {itu} | {int(row['maps']):,} | "
+            f"| {scope} | {rho_phi} | {int(row['maps']):,} | "
             f"{float(row['overall_rmse_db']):.6f} | "
             f"{float(row['los_rmse_db']):.6f} | "
             f"{float(row['nlos_rmse_db']):.6f} |"
@@ -235,17 +230,13 @@ def main() -> None:
     regime_coefficients = load_coefficients(
         args.two_ray_dir / "nlos_regime_calibration_itu.json"
     )
-    global_coefficients = load_coefficients(
-        args.two_ray_dir / "nlos_global_calibration_official.json"
-    )
-
     scopes = ("global", "suburban", "urban", "dense_urban")
     statistics = {
         combination: {
             scope: {region: fresh_stats() for region in ("overall", "los", "nlos")}
             for scope in scopes
         }
-        for combination, _, _ in COMBINATIONS
+        for combination, _ in COMBINATIONS
     }
     map_counts: Counter[str] = Counter()
 
@@ -266,11 +257,8 @@ def main() -> None:
             features = hybrid_ref.compute_pixel_features(
                 sample["topology"], sample["los_mask"], cost231, height
             )
-            nlos_with_itu = linear_nlos_map(
+            nlos_prediction = linear_nlos_map(
                 features, regime_coefficients[regime], hybrid_ref
-            )
-            nlos_without_itu = linear_nlos_map(
-                features, global_coefficients[GLOBAL_KEY], hybrid_ref
             )
             los_with_rho_phi = los_model.predict_two_ray_map(
                 height, two_ray_calibration
@@ -280,11 +268,10 @@ def main() -> None:
             )
             los_flag = sample["los_mask"] > 0
 
-            for combination, use_rho_phi, use_itu in COMBINATIONS:
+            for combination, use_rho_phi in COMBINATIONS:
                 los_prediction = (
                     los_with_rho_phi if use_rho_phi else los_without_rho_phi
                 )
-                nlos_prediction = nlos_with_itu if use_itu else nlos_without_itu
                 prediction = np.where(
                     los_flag, los_prediction, nlos_prediction
                 ).astype(np.float32)
@@ -297,14 +284,13 @@ def main() -> None:
                 print(f"evaluate test [{number}/{len(test_refs)}]", flush=True)
 
     rows = []
-    for combination, use_rho_phi, use_itu in COMBINATIONS:
+    for combination, use_rho_phi in COMBINATIONS:
         for scope in scopes:
             bundle = statistics[combination][scope]
             rows.append(
                 {
                     "combination": combination,
                     "rho_phi": "with" if use_rho_phi else "without",
-                    "itu_topology": "with" if use_itu else "without",
                     "scope": scope,
                     "maps": len(test_refs) if scope == "global" else map_counts[scope],
                     "overall_rmse_db": rmse(bundle["overall"]),
@@ -317,8 +303,8 @@ def main() -> None:
             )
 
     expected = {
-        "with_rho_phi_with_itu": 1.928749619998359,
-        "without_rho_phi_with_itu": 3.7292385336740956,
+        "with_rho_phi": 1.928749619998359,
+        "without_rho_phi": 3.7292385336740956,
     }
     for combination, expected_rmse in expected.items():
         observed = next(
@@ -331,8 +317,8 @@ def main() -> None:
                 f"reproduction check failed for {combination}: {observed} != {expected_rmse}"
             )
 
-    write_csv(args.out_dir / "factorial_rmse.csv", rows)
-    write_markdown(args.out_dir / "factorial_rmse.md", rows)
+    write_csv(args.out_dir / "rho_phi_rmse.csv", rows)
+    write_markdown(args.out_dir / "rho_phi_rmse.md", rows)
     metadata = {
         "split": {
             "source": "Try 74/75 compatible split_city_holdout_try80",
@@ -341,18 +327,17 @@ def main() -> None:
             "validation_maps": len(validation_refs),
             "test_maps": len(test_refs),
         },
-        "factor_contract": {
+        "ablation_contract": {
             "rho_phi_with": "coherent two-ray rho, phi, and bias plus refitted radial residual",
             "rho_phi_without": "FSPL plus radial residual refitted after removing rho, phi, and two-ray bias",
-            "itu_with": "three topology-specific NLoS ridge calibrations with per-sample ITU routing",
-            "itu_without": "one global NLoS ridge calibration",
+            "itu_topology": "fixed to three topology-specific NLoS ridge calibrations with per-sample routing",
             "radial_r": "present and recalibrated in every combination",
             "building_pixels": "excluded from every metric",
         },
         "topology_map_counts": dict(sorted(map_counts.items())),
         "reproduction_checks": expected,
     }
-    (args.out_dir / "factorial_metadata.json").write_text(
+    (args.out_dir / "rho_phi_metadata.json").write_text(
         json.dumps(metadata, indent=2) + "\n", encoding="utf-8"
     )
     print(json.dumps(rows, indent=2), flush=True)

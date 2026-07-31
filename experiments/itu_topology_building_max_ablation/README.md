@@ -18,7 +18,13 @@ footprint, and estimates the Rayleigh mode with
 `sqrt(mean(building_height^2) / 2)`. It does not give separate weight to every
 building pixel.
 
-Official source: [ITU-R P.1410-6](https://www.itu.int/dms_pubrec/itu-r/rec/p/R-REC-P.1410-6-202308-I%21%21PDF-E.pdf).
+The parameter definitions are in
+[ITU-R P.1410-6](https://www.itu.int/dms_pubrec/itu-r/rec/p/R-REC-P.1410-6-202308-I%21%21PDF-E.pdf),
+Section 2.1.4, printed page 10 (PDF page 12). The exact four standard
+environment tuples used by the classifier are reproduced in Table 2 of
+[Saboor et al.](https://imec-publications.be/bitstreams/0b904d1a-eaf3-4112-aecb-6eda2b35a2d9/download),
+printed page 367 (PDF page 4). See [`ITU_SOURCE.md`](ITU_SOURCE.md) for the
+source distinction.
 
 The known limitation is that touching raster footprints can be merged into a
 single connected component.
@@ -64,22 +70,21 @@ The corrected two-ray overall RMSE differs from the earlier mean-height run by
 only +0.000002 dB, so the numerical conclusion is unchanged even though the
 raster interpretation is now clearer.
 
-## Rho/Phi and ITU factorial ablation
+## Rho/Phi ablation
 
-The controlled 2 x 2 test keeps a recalibrated radial correction in every
-variant. It changes only the coherent two-ray rho/phi/bias terms and the NLoS
-topology conditioning. Without ITU means one global NLoS ridge calibration.
+This controlled test keeps the corrected ITU topology classification and its
+NLoS calibration fixed. It changes only whether the LoS model includes the
+coherent two-ray rho, phi, and bias terms. The radial correction is present
+and recalibrated in both variants.
 
-| Rho/Phi | ITU topology | Overall RMSE | LoS RMSE | NLoS RMSE |
-|---|---|---:|---:|---:|
-| With | With | 1.928750 dB | 1.737044 dB | 3.535074 dB |
-| With | Without | 1.931703 dB | 1.737044 dB | 3.556758 dB |
-| Without | With | 3.729239 dB | 3.744350 dB | 3.535074 dB |
-| Without | Without | 3.730767 dB | 3.744350 dB | 3.556758 dB |
+| Rho/Phi | Overall RMSE | LoS RMSE | NLoS RMSE |
+|---|---:|---:|---:|
+| With | 1.928750 dB | 1.737044 dB | 3.535074 dB |
+| Without | 3.729239 dB | 3.744350 dB | 3.535074 dB |
 
 The complete English table for global, suburban, urban, and dense urban
 scopes is in
-[`results/rho_phi_itu_factorial/factorial_rmse.md`](results/rho_phi_itu_factorial/factorial_rmse.md).
+[`results/rho_phi_ablation/rho_phi_rmse.md`](results/rho_phi_ablation/rho_phi_rmse.md).
 
 ## Commands
 
@@ -87,5 +92,5 @@ scopes is in
 python run_two_ray_itu3_building_max.py
 python run_radial_only_itu3_building_max.py
 python compare_corrected_runs.py
-python evaluate_rho_phi_itu_factorial.py
+python evaluate_rho_phi_ablation.py
 ```

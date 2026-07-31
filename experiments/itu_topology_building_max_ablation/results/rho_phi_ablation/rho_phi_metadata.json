@@ -6,11 +6,10 @@
     "validation_maps": 2750,
     "test_maps": 2590
   },
-  "factor_contract": {
+  "ablation_contract": {
     "rho_phi_with": "coherent two-ray rho, phi, and bias plus refitted radial residual",
     "rho_phi_without": "FSPL plus radial residual refitted after removing rho, phi, and two-ray bias",
-    "itu_with": "three topology-specific NLoS ridge calibrations with per-sample ITU routing",
-    "itu_without": "one global NLoS ridge calibration",
+    "itu_topology": "fixed to three topology-specific NLoS ridge calibrations with per-sample routing",
     "radial_r": "present and recalibrated in every combination",
     "building_pixels": "excluded from every metric"
   },
@@ -20,7 +19,7 @@
     "urban": 940
   },
   "reproduction_checks": {
-    "with_rho_phi_with_itu": 1.928749619998359,
-    "without_rho_phi_with_itu": 3.7292385336740956
+    "with_rho_phi": 1.928749619998359,
+    "without_rho_phi": 3.7292385336740956
   }
 }
