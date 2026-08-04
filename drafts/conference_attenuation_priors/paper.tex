@@ -317,8 +317,7 @@ n_k=\mathcal A_k[\mathbf N],\\
 \label{eq:features}
 \end{equation}
 where $\theta$ is the elevation angle in degrees and
-$\sigma_{\mathrm{sh}}$ is a deterministic angular feature, not a random
-shadowing realization. The implemented vector is
+$\sigma_{\mathrm{sh}}$ is a deterministic angular feature. The implemented vector is
 \begin{equation}
 \begin{aligned}
 \mathbf x=[&\Lambda_C,\ell_d,\delta_{15},\delta_{41},h_{15},h_{41},
@@ -328,27 +327,39 @@ shadowing realization. The implemented vector is
 \label{eq:nlos-vector}
 \end{equation}
 
-Routing is computed from each height raster. With building set $\mathcal B$,
-$N_b$ four-connected footprints of area $A$ in \si{km^2}, and one maximum
-height $H_j$ per footprint, we estimate
+Routing follows the ITU standard topology and transmitter-height partitions
+\cite{iturp1410,saboor2024geometry}. It combines a topology class obtained from
+the building-height raster with a class obtained directly from the transmitter
+height. Let $\mathcal B$ be the set of building pixels and let its
+four-connected components represent the $N_b$ building footprints. With total raster area
+$A=513^2\times10^{-6}$~\si{km^2} and maximum raster height $H_j$ in footprint
+$j$, we estimate
 \begin{equation}
 \hat\alpha=\frac{|\mathcal B|}{513^2},\quad
 \hat\beta=\frac{N_b}{A},\quad
 \hat\gamma=\sqrt{\frac{1}{2N_b}\sum_{j=1}^{N_b}H_j^2}.
 \label{eq:itu-routing}
 \end{equation}
-The minimum equal-weight log-ratio distance to the ITU-inspired
-$(\alpha,\beta,\gamma)$ prototypes suburban $(0.1,750,8)$, urban
-$(0.3,500,15)$, dense urban $(0.5,300,20)$, and urban high-rise
-$(0.5,300,50)$ assigns the route, with high-rise merged into dense urban
-\cite{iturp1410,saboor2024geometry}. The transmitter height regimes are low
-for $h_{\mathrm{tx}}\le\SI{60}{m}$, middle for
-$\SI{60}{m}<h_{\mathrm{tx}}\le\SI{100}{m}$, and high for
-$h_{\mathrm{tx}}>\SI{100}{m}$. This gives nine topology/height regimes without
-a city-name lookup.
+Thus, $\hat\alpha$ is the built-up fraction, $\hat\beta$ is the footprint
+density in buildings per \si{km^2}, and $\hat\gamma$ is the fitted Rayleigh
+mode of the footprint heights. For each ITU prototype $k$, the
+selector computes the equal-weight distance
+$d_k=\|\log[(\hat\alpha,\hat\beta,\hat\gamma)/
+(\alpha_k,\beta_k,\gamma_k)]\|_2$ and chooses the smallest. The componentwise
+log-ratios compare relative deviations and prevent the numerical scale of
+$\beta$ from dominating. The prototypes are suburban $(0.1,750,8)$, urban
+$(0.3,500,15)$, dense urban $(0.5,300,20)$, and urban high rise
+$(0.5,300,50)$. Urban high rise is merged
+into dense urban because only 90 training maps select that prototype. This
+leaves three topology classes. Independently, transmitter height is assigned
+to low ($h_{\mathrm{tx}}\le\SI{60}{m}$), middle
+($\SI{60}{m}<h_{\mathrm{tx}}\le\SI{100}{m}$), or high
+($h_{\mathrm{tx}}>\SI{100}{m}$). The topology and height labels jointly select
+one of $3\times3=9$ fitted coefficient sets, without using the city name or
+channel target.
 
 For each training map, at most 1024 NLoS pixels are selected deterministically.
-Non-intercept features are standardized within regime $q$ and fitted by
+Non-intercept features are standardized within regime $q$ and fitted by a ridge regression:
 \begin{equation}
 \hat{\mathbf w}_q=\arg\min_{\mathbf w}\sum_{i\in q}
 (\mathbf z_i^\top\mathbf w-y_i)^2+10^{-2}\|\mathbf w_{\neg b}\|_2^2.
@@ -369,11 +380,10 @@ been transformed back to raw feature space.
 The city holdout contains 10840 maps from 37 training cities, 2750 from 15
 validation cities, and 2590 from 14 final-test cities. Calibration uses
 training cities only; validation is reserved for development and ablation.
-Buildings are excluded before receiver statistics or metrics are computed.
-The test set contains 545568250 ground locations, of which 28.199\% are NLoS
-according to the RT visibility mask. The metric further removes 122481131
-ground locations without a target in the stored $[20,185]$ dB support. Among
-the remaining 423087119 receivers, 7.413\% are NLoS. Although the
+Building pixels are excluded before receiver statistics or metrics are
+computed. The final test metrics therefore contain $423\,087\,119$ valid
+non-building receivers: $391\,721\,805$ LoS and $31\,365\,314$ NLoS. NLoS
+receivers account for 7.413\% of the evaluated pixels. Although the
 pixel-weighted score is therefore LoS dominated, 424 test maps contain more
 than 25\% valid NLoS receivers.
 
@@ -384,8 +394,6 @@ headline error is
 [\hat y_i(p)-y_i(p)]^2}{\sum_i\sum_p m_i(p)}}.
 \label{eq:rmse}
 \end{equation}
-Uncertainty uses 20000 percentile-bootstrap draws over held-out cities, not
-pixels, thereby preserving within-city spatial dependence.
 
 \begin{figure}[t]
 \centering
@@ -403,8 +411,7 @@ and \SI{2.52}{dB}, respectively.}
 \subsection{Ablation and Accuracy}
 Validation ablation confirms that the coherent reflected field is essential:
 adding it to FSPL with height bias reduces LoS RMSE from 3.7900 to
-\SI{1.7412}{dB}, while the radial table changes it only to
-\SI{1.7388}{dB}. In NLoS, training-only global calibration reduces the raw
+\SI{1.7412}{dB}. In NLoS, training-only global calibration reduces the raw
 COST231-basis RMSE from 25.4045 to \SI{3.2179}{dB}; observable topology/height
 routing reaches \SI{3.1983}{dB}. Thus, calibration explains the main NLoS
 reduction, while routing provides a smaller refinement.
@@ -435,49 +442,8 @@ A 20000-draw city bootstrap gives a 95\% overall-RMSE interval of
 Halifax to \SI{2.5851}{dB} in Osaka, with an unweighted mean of
 \SI{1.9831}{dB}.
 
-To separate model compactness from routing, Table~\ref{tab:routing-ablation}
-recalibrates every retained feature set on training cities before frozen test
-evaluation. Relative to the global 14-feature fit, topology-only routing
-retains 64\% of the complete routing gain, whereas height-only routing retains
-31\%; these shares are not additive because the complete model includes their
-interaction. Thus, topology is the stronger routing partition on final test.
-The eight-feature model
-$[\Lambda_C,\ell_d,\delta_{41},h_{41},n_{41},\sigma_{\mathrm{sh}},
-\theta_n,1]$ retains over 90\% of the complete model's reduction from a
-single global NLoS constant. A topology-specific constant is already a useful
-\SI{4.5391}{dB} NLoS baseline, but it is essentially tied with the global
-constant; topology helps primarily through its fitted slopes rather than its
-intercept alone.
-
-\begin{table}[t]
-\centering
-\caption{Frozen test NLoS ablation; every row is recalibrated.}
-\label{tab:routing-ablation}
-\scriptsize
-\setlength{\tabcolsep}{3.2pt}
-\begin{tabular}{lccr}
-\toprule
-Variant & Routing & Terms & RMSE [dB] \\
-\midrule
-Complete & topology $\times$ height & 14 & 3.5363 \\
-Topology only & topology & 14 & 3.5437 \\
-Height only & height & 14 & 3.5504 \\
-Global fit & none & 14 & 3.5568 \\
-41-pixel compact & topology $\times$ height & 8 & 3.5642 \\
-Without 15-pixel scale & topology $\times$ height & 11 & 3.5443 \\
-Without 41-pixel scale & topology $\times$ height & 8 & 3.6352 \\
-Without local morphology & topology $\times$ height & 5 & 3.6907 \\
-Topology constant & topology & 1 & 4.5391 \\
-Global constant & none & 1 & 4.5403 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The scale removals provide a second compactness check. Removing the 15-pixel
-summaries changes little, whereas removing the 41-pixel summaries causes the
-largest single-scale degradation. Eliminating all local morphology degrades
-further. Regional context is therefore useful even though the strong regime
-and geometry baseline makes its incremental effect look modest.
+A compact model retaining eight of the 14 features preserves over 90\% of the
+complete model's improvement over a single global NLoS constant.
 
 Table~\ref{tab:breakdown} uses the same low, middle, and high thresholds as the
 fitted model. Error decreases with height, particularly in NLoS. The topology
@@ -566,9 +532,10 @@ purely neural approach found in an internal exploration of over 50 model
 configurations. Its lower NLoS error shows where distribution-aware learning
 can help, while the substantially lower LoS and overall errors of the proposed
 model show the value of resolving the stable coherent component explicitly.
-This neural result is included as a preview, not as the final hybrid: a
-following paper will train neural models to refine the calibrated priors for
-attenuation, delay spread, and angular spread.
+This neural result is included only as a preview. A following paper will study
+the hybrid approach in depth, using the calibrated attenuation, delay spread,
+and angular spread priors both as model inputs and as base estimates for neural
+refinement.
 
 The remaining rows are published context, not a controlled ranking. RadioUNet
 reports 0.020 gray-level RMSE, or \SI{1.60}{dB} under its 80-dB scaling;
