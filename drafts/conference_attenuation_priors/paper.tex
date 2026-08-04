@@ -398,32 +398,13 @@ visibility subset below; building pixels never enter the metrics. The map has
 \end{figure}
 
 \subsection{Ablation and Accuracy}
-Table~\ref{tab:ablation} reports validation branch errors after independent
-training-only recalibration. The coherent reflected field is essential to the
-LoS result. The raw COST231 basis is deliberately poor outside its source
-domain; morphology regression explains most of the NLoS reduction, and
-observable topology/height routing improves on one global coefficient vector.
-
-\begin{table}[t]
-\centering
-\caption{Validation branch RMSE for calibrated components.}
-\label{tab:ablation}
-\scriptsize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{llr}
-\toprule
-Branch & Variant & RMSE [dB] \\
-\midrule
-LoS & FSPL + height bias & 3.7900 \\
-LoS & + coherent two ray & 1.7412 \\
-LoS & + radial table & 1.7388 \\
-\midrule
-NLoS & raw $\Lambda_C$ & 25.4045 \\
-NLoS & global ridge & 3.2179 \\
-NLoS & nine routed ridges & 3.1987 \\
-\bottomrule
-\end{tabular}
-\end{table}
+Validation ablation confirms that the coherent reflected field is essential:
+adding it to FSPL with height bias reduces LoS RMSE from 3.7900 to
+\SI{1.7412}{dB}, while the radial table changes it only to
+\SI{1.7388}{dB}. In NLoS, training-only global calibration reduces the raw
+COST231-basis RMSE from 25.4045 to \SI{3.2179}{dB}; observable topology/height
+routing reaches \SI{3.1987}{dB}. Thus, calibration explains the main NLoS
+reduction, while routing provides a smaller refinement.
 
 \begin{table}[t]
 \centering
