@@ -390,10 +390,11 @@ pixels, thereby preserving within-city spatial dependence.
 \includegraphics[width=\columnwidth]{figures/nlos_heldout_example.png}
 \caption{Held-out Vancouver \texttt{sample\_15262}
 ($h_{\mathrm{tx}}=\SI{50.30}{m}$; urban, low-height regime). Columns compare
-RT ground truth with the frozen model; rows show all valid receivers, LoS, and
-NLoS. Gray marks buildings in the first row and receivers outside the displayed
+the CKM dataset target with the model output; rows show all valid receivers,
+LOS, and NLOS. Gray marks buildings in the first row and receivers outside the displayed
 visibility subset below; building pixels never enter the metrics. The map has
-119180 LoS and 25607 NLoS receivers, with 2.10 and \SI{2.53}{dB} RMSE.}
+119180 LOS and 25607 NLOS receivers. Full, LOS, and NLOS RMSE are 2.18, 2.10,
+and \SI{2.53}{dB}, respectively.}
 \label{fig:nlos-example}
 \end{figure}
 

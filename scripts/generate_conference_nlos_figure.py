@@ -106,8 +106,8 @@ def main() -> None:
     attenuation_cmap.set_bad("#D9D9D9")
     rows = (
         ("All receivers", valid, target, prediction),
-        ("LoS", los, target, los_prior),
-        ("NLoS", nlos, target, nlos_prior),
+        ("LOS", los, target, los_prior),
+        ("NLOS", nlos, target, nlos_prior),
     )
     image = None
     for row, (label, keep, truth, estimate) in enumerate(rows):
@@ -129,17 +129,17 @@ def main() -> None:
         )
         axes[row, 0].set_ylabel(f"{label}\ny [m]", labelpad=1)
 
-    axes[0, 0].set_title("Ground truth")
-    axes[0, 1].set_title("Frozen model")
+    axes[0, 0].set_title("CKM dataset")
+    axes[0, 1].set_title("Model")
 
     for axis in axes.flat:
-        axis.set_xticks((-200, 0, 200))
-        axis.set_yticks((-200, 0, 200))
-        axis.tick_params(length=2, pad=1)
+        axis.set_xticks((-256, 0, 256))
+        axis.set_yticks((-256, 0, 256))
+        axis.tick_params(length=2, pad=1, labelbottom=True)
     axes[2, 0].set_xlabel("x [m]", labelpad=0)
     axes[2, 1].set_xlabel("x [m]", labelpad=0)
     for axis in axes[:, 1]:
-        axis.set_yticklabels([])
+        axis.tick_params(labelleft=False)
 
     cbar_loss = fig.colorbar(
         image,
