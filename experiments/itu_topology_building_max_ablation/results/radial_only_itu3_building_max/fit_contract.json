@@ -55,5 +55,16 @@
     "gamma_estimator": "Rayleigh maximum-likelihood scale sqrt(mean(building_max_height^2)/2)",
     "raster_interpretation_note": "P.1410-6 defines a building-height distribution but does not prescribe mean-versus-maximum reduction for an irregular height raster",
     "meters_per_pixel": 1.0
+  },
+  "antenna_height_routing": {
+    "thresholds_m": [
+      60.0,
+      100.0
+    ],
+    "rules": {
+      "low_ant": "h_tx <= 60 m",
+      "mid_ant": "60 m < h_tx <= 100 m",
+      "high_ant": "h_tx > 100 m"
+    }
   }
 }

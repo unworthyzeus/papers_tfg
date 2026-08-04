@@ -48,10 +48,11 @@ COMBINATIONS = (
 )
 TOPOLOGIES = ("suburban", "urban", "dense_urban")
 ANTENNA_BINS = ("low_ant", "mid_ant", "high_ant")
+ANTENNA_HEIGHT_THRESHOLDS_M = (60.0, 100.0)
 ANTENNA_RULES = {
-    "low_ant": "hTx <= 58.12 m",
-    "mid_ant": "58.12 m < hTx <= 103.85 m",
-    "high_ant": "hTx > 103.85 m",
+    "low_ant": "hTx <= 60 m",
+    "mid_ant": "60 m < hTx <= 100 m",
+    "high_ant": "hTx > 100 m",
 }
 
 
@@ -263,6 +264,7 @@ def main() -> None:
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
     official, hybrid_ref, los_model = import_reference_modules(args.reference_dir)
+    hybrid_ref.ANT_Q1, hybrid_ref.ANT_Q2 = ANTENNA_HEIGHT_THRESHOLDS_M
     router = ITUTopologyRouter(
         mode="itu3",
         meters_per_pixel=float(hybrid_ref.METERS_PER_PIXEL),
@@ -395,8 +397,20 @@ def main() -> None:
             )
 
     expected = {
-        "with_rho_phi": 1.928749619998359,
-        "without_rho_phi": 3.7292385336740956,
+        "with_rho_phi": float(
+            json.loads(
+                (args.two_ray_dir / "official_test_summary.json").read_text(
+                    encoding="utf-8"
+                )
+            )["final_variant"]["test_metrics"]["overall_rmse_db"]
+        ),
+        "without_rho_phi": float(
+            json.loads(
+                (args.radial_dir / "official_test_summary.json").read_text(
+                    encoding="utf-8"
+                )
+            )["final_variant"]["test_metrics"]["overall_rmse_db"]
+        ),
     }
     for combination, expected_rmse in expected.items():
         observed = next(
@@ -482,6 +496,7 @@ def main() -> None:
             "itu_topology": "fixed to three topology-specific NLoS ridge calibrations with per-sample routing",
             "radial_r": "present and recalibrated in every combination",
             "building_pixels": "excluded from every metric",
+            "antenna_height_routing": ANTENNA_RULES,
         },
         "topology_map_counts": dict(sorted(map_counts.items())),
         "antenna_map_counts": dict(sorted(antenna_map_counts.items())),

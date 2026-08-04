@@ -41,6 +41,7 @@ OUTPUT_DEFAULT = (
     / "official_split_analysis"
     / "extended_nlos_ablations"
 )
+ANTENNA_HEIGHT_THRESHOLDS_M = (60.0, 100.0)
 
 
 FULL_FEATURE_NAMES = (
@@ -566,6 +567,7 @@ def main() -> None:
     base = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(base)
     official, hybrid_ref, los_model = base._import_reference_modules(args.reference_dir)
+    hybrid_ref.ANT_Q1, hybrid_ref.ANT_Q2 = ANTENNA_HEIGHT_THRESHOLDS_M
     if args.itu_router_dir is not None:
         import sys
 
@@ -618,6 +620,11 @@ def main() -> None:
                 if args.itu_router_dir is not None
                 else "reference default"
             ),
+            "antenna_height_routing": {
+                "low_ant": "h_tx <= 60 m",
+                "mid_ant": "60 m < h_tx <= 100 m",
+                "high_ant": "h_tx > 100 m",
+            },
         },
         "feature_names": list(FULL_FEATURE_NAMES),
         "variants": {

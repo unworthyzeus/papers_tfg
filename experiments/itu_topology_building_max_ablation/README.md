@@ -38,8 +38,10 @@ holdout:
    two-ray bias. The recalibrated NLoS coefficients from run 1 are frozen so
    only LoS changes.
 
-All outputs remain below this directory. Earlier experiments, official code,
-paper artifacts, and the HDF5 are not modified.
+Both runs use three transmitter height regimes: low at `h_tx <= 60 m`, middle
+at `60 m < h_tx <= 100 m`, and high at `h_tx > 100 m`. Each of the nine
+topology and height combinations has its own recalibrated NLoS coefficients.
+The approved nearest-prototype ITU topology router is unchanged.
 
 ## Completed full-split results
 
@@ -48,8 +50,8 @@ evaluated on the 2,590 official test maps.
 
 | LoS model | Overall RMSE | LoS RMSE | NLoS RMSE |
 |---|---:|---:|---:|
-| Coherent two ray with refitted rho, phi, bias, and radial residual | 1.928750 dB | 1.737044 dB | 3.535074 dB |
-| FSPL with refitted radial residual only | 3.729239 dB | 3.744350 dB | 3.535074 dB |
+| Coherent two ray with refitted rho, phi, bias, and radial residual | 1.928912 dB | 1.737044 dB | 3.536270 dB |
+| FSPL with refitted radial residual only | 3.729323 dB | 3.744350 dB | 3.536270 dB |
 
 The NLoS column is identical by design: the second run freezes the corrected
 NLoS calibration from the first run so that the comparison isolates the LoS
@@ -59,16 +61,17 @@ model.
 
 | Topology | Maps | Two ray plus radial | FSPL plus refitted radial | Difference |
 |---|---:|---:|---:|---:|
-| Suburban | 1,455 | 1.697705 dB | 3.686530 dB | 1.988826 dB |
-| Urban | 940 | 2.296086 dB | 3.772296 dB | 1.476210 dB |
-| Dense urban | 195 | 2.570365 dB | 4.044732 dB | 1.474367 dB |
+| Suburban | 1,455 | 1.697741 dB | 3.686547 dB | 1.988806 dB |
+| Urban | 940 | 2.296267 dB | 3.772406 dB | 1.476139 dB |
+| Dense urban | 195 | 2.571558 dB | 4.045490 dB | 1.473932 dB |
 
 Changing from one mean roof height per connected footprint to one maximum
 height per footprint increased gamma by 4.76% on average over nonempty test
 maps. It changed 15 of 2,590 test assignments, all from suburban to urban.
-The corrected two-ray overall RMSE differs from the earlier mean-height run by
-only +0.000002 dB, so the numerical conclusion is unchanged even though the
-raster interpretation is now clearer.
+The topology assignments remain the same as in the preceding corrected-router
+run. The results above change because all nine NLoS coefficient sets were
+refitted after replacing the earlier data-derived height cuts with 60 and
+100 m.
 
 ## Rho/Phi ablation
 
@@ -79,8 +82,8 @@ and recalibrated in both variants.
 
 | Rho/Phi | Overall RMSE | LoS RMSE | NLoS RMSE |
 |---|---:|---:|---:|
-| With | 1.928750 dB | 1.737044 dB | 3.535074 dB |
-| Without | 3.729239 dB | 3.744350 dB | 3.535074 dB |
+| With | 1.928912 dB | 1.737044 dB | 3.536270 dB |
+| Without | 3.729323 dB | 3.744350 dB | 3.536270 dB |
 
 The complete English table for global, suburban, urban, and dense urban
 scopes is in

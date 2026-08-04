@@ -66,12 +66,22 @@ VARIANT_LABELS = {
     "global_nlos_ridge": "FSPL + refitted radial LoS + frozen global NLoS ridge",
     "regime_nlos_ridge": "FSPL + refitted radial LoS + frozen building-maximum ITU 3 NLoS ridge",
 }
-HEIGHT_BINS = (
-    (12.0, 50.0, "12--50"),
-    (50.0, 150.0, "50--150"),
-    (150.0, 300.0, "150--300"),
-    (300.0, 500.0001, "300--500"),
-)
+ANTENNA_HEIGHT_THRESHOLDS_M = (60.0, 100.0)
+HEIGHT_BIN_LABELS = {
+    "low_ant": "low",
+    "mid_ant": "middle",
+    "high_ant": "high",
+}
+HEIGHT_BIN_ORDER = ("low", "middle", "high")
+
+
+def configure_antenna_height_bins(hybrid_ref) -> None:
+    """Use the same three antenna-height regimes as the fitted NLoS model."""
+    low_max, middle_max = ANTENNA_HEIGHT_THRESHOLDS_M
+    if not low_max < middle_max:
+        raise ValueError("antenna-height thresholds must be strictly increasing")
+    hybrid_ref.ANT_Q1 = low_max
+    hybrid_ref.ANT_Q2 = middle_max
 
 
 def _import_reference_modules(reference_dir: Path):
@@ -540,10 +550,7 @@ def evaluate_split(
                 sample, ref, radial_calibration, coefs, hybrid_ref, los_model
             )
             target = sample["path_loss"]
-            height_label = next(
-                (label for low, high, label in HEIGHT_BINS if low <= ref.uav_height_m < high),
-                "outside_reported_bins",
-            )
+            height_label = HEIGHT_BIN_LABELS[aux["antenna_bin"]]
 
             if collect_details:
                 visibility["full_cells"] += int(valid.size)
@@ -648,7 +655,7 @@ def evaluate_split(
                 }
             )
         height_rows = []
-        for _, _, label in HEIGHT_BINS:
+        for label in HEIGHT_BIN_ORDER:
             height_rows.append(
                 {"height_bin": label, **_summary_bundle(height_stats[label]), "maps": height_maps[label]}
             )
@@ -894,6 +901,7 @@ def main() -> None:
         args.out_dir = DEFAULT_OUTPUT
     args.out_dir.mkdir(parents=True, exist_ok=True)
     official, hybrid_ref, los_model = _import_reference_modules(args.reference_dir)
+    configure_antenna_height_bins(hybrid_ref)
     router = ITUTopologyRouter(
         mode=args.routing,
         meters_per_pixel=float(hybrid_ref.METERS_PER_PIXEL),
@@ -926,6 +934,11 @@ def main() -> None:
         {"train": train_refs, "validation": val_refs, "test": test_refs},
         router,
     )
+    routing_summary["antenna_height_routing"] = {
+        "low_ant": "h_tx <= 60 m",
+        "mid_ant": "60 m < h_tx <= 100 m",
+        "high_ant": "h_tx > 100 m",
+    }
     _write_csv(args.out_dir / "routing_audit.csv", routing_rows)
     _write_json(args.out_dir / "routing_summary.json", routing_summary)
     evaluation_regimes = routing_regime_support(
@@ -990,6 +1003,10 @@ def main() -> None:
             "global_model_type": global_payload["model_type"],
         },
         "topology_routing": router.contract(),
+        "antenna_height_routing": {
+            "thresholds_m": list(ANTENNA_HEIGHT_THRESHOLDS_M),
+            "rules": routing_summary["antenna_height_routing"],
+        },
     }
     _write_json(args.out_dir / "fit_contract.json", fit_contract)
 

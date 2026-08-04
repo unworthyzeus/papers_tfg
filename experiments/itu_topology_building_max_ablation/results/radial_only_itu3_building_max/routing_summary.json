@@ -117,5 +117,10 @@
       }
     }
   },
-  "unique_topology_rasters": 3229
+  "unique_topology_rasters": 3229,
+  "antenna_height_routing": {
+    "low_ant": "h_tx <= 60 m",
+    "mid_ant": "60 m < h_tx <= 100 m",
+    "high_ant": "h_tx > 100 m"
+  }
 }

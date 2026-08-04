@@ -11,7 +11,12 @@
     "rho_phi_without": "FSPL plus radial residual refitted after removing rho, phi, and two-ray bias",
     "itu_topology": "fixed to three topology-specific NLoS ridge calibrations with per-sample routing",
     "radial_r": "present and recalibrated in every combination",
-    "building_pixels": "excluded from every metric"
+    "building_pixels": "excluded from every metric",
+    "antenna_height_routing": {
+      "low_ant": "hTx <= 60 m",
+      "mid_ant": "60 m < hTx <= 100 m",
+      "high_ant": "hTx > 100 m"
+    }
   },
   "topology_map_counts": {
     "dense_urban": 195,
@@ -19,23 +24,23 @@
     "urban": 940
   },
   "antenna_map_counts": {
-    "high_ant": 866,
-    "low_ant": 846,
-    "mid_ant": 878
+    "high_ant": 918,
+    "low_ant": 899,
+    "mid_ant": 773
   },
   "topology_antenna_map_counts": {
-    "suburban|low_ant": 484,
-    "suburban|mid_ant": 468,
-    "suburban|high_ant": 503,
-    "urban|low_ant": 301,
-    "urban|mid_ant": 335,
-    "urban|high_ant": 304,
-    "dense_urban|low_ant": 61,
-    "dense_urban|mid_ant": 75,
-    "dense_urban|high_ant": 59
+    "suburban|low_ant": 509,
+    "suburban|mid_ant": 415,
+    "suburban|high_ant": 531,
+    "urban|low_ant": 319,
+    "urban|mid_ant": 297,
+    "urban|high_ant": 324,
+    "dense_urban|low_ant": 71,
+    "dense_urban|mid_ant": 61,
+    "dense_urban|high_ant": 63
   },
   "reproduction_checks": {
-    "with_rho_phi": 1.928749619998359,
-    "without_rho_phi": 3.7292385336740956
+    "with_rho_phi": 1.9289120440554886,
+    "without_rho_phi": 3.729322541440767
   }
 }

@@ -27,6 +27,7 @@ LOS_CALIBRATION = EXPERIMENT_DIR / "results" / "two_ray_itu3_building_max" / "lo
 OUTPUT = REPO_ROOT / "drafts" / "conference_attenuation_priors" / "figures" / "nlos_heldout_example.png"
 CITY = "Vancouver"
 SAMPLE = "sample_15262"
+ANTENNA_HEIGHT_THRESHOLDS_M = (60.0, 100.0)
 
 
 def masked(values: np.ndarray, keep: np.ndarray) -> np.ma.MaskedArray:
@@ -40,6 +41,7 @@ def main() -> None:
     sys.path.insert(0, str(EXPERIMENT_DIR))
     from itu_topology import ITUTopologyRouter
 
+    priors.ANT_Q1, priors.ANT_Q2 = ANTENNA_HEIGHT_THRESHOLDS_M
     router = ITUTopologyRouter(
         mode="itu3",
         meters_per_pixel=float(priors.METERS_PER_PIXEL),

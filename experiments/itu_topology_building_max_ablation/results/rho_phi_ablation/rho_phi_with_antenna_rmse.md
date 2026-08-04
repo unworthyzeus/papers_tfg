@@ -8,20 +8,20 @@ recalibrated radial correction. RMSE is pixel-weighted over the official
 
 | Topology | Antenna bin | Height rule | Maps | Overall RMSE | LoS RMSE | NLoS RMSE |
 |---|---|---|---:|---:|---:|---:|
-| Suburban | Low | hTx <= 58.12 m | 484 | 1.883782 | 1.678704 | 3.345009 |
-| Suburban | Mid | 58.12 m < hTx <= 103.85 m | 468 | 1.699505 | 1.636261 | 2.972276 |
-| Suburban | High | hTx > 103.85 m | 503 | 1.524811 | 1.517532 | 2.155021 |
-| Urban | Low | hTx <= 58.12 m | 301 | 2.644874 | 2.050202 | 4.045260 |
-| Urban | Mid | 58.12 m < hTx <= 103.85 m | 335 | 2.347036 | 2.040480 | 3.554021 |
-| Urban | High | hTx > 103.85 m | 304 | 1.987608 | 1.930839 | 2.720682 |
-| Dense Urban | Low | hTx <= 58.12 m | 61 | 2.967731 | 2.276018 | 4.364450 |
-| Dense Urban | Mid | 58.12 m < hTx <= 103.85 m | 75 | 2.792588 | 2.246364 | 4.259618 |
-| Dense Urban | High | hTx > 103.85 m | 59 | 2.005211 | 1.899602 | 3.043231 |
+| Suburban | Low | hTx <= 60 m | 509 | 1.879726 | 1.681307 | 3.325184 |
+| Suburban | Mid | 60 m < hTx <= 100 m | 415 | 1.690112 | 1.625701 | 3.018839 |
+| Suburban | High | hTx > 100 m | 531 | 1.537026 | 1.527675 | 2.242948 |
+| Urban | Low | hTx <= 60 m | 319 | 2.619855 | 2.044186 | 4.022796 |
+| Urban | Mid | 60 m < hTx <= 100 m | 297 | 2.353992 | 2.040472 | 3.560468 |
+| Urban | High | hTx > 100 m | 324 | 2.007354 | 1.939455 | 2.817347 |
+| Dense Urban | Low | hTx <= 60 m | 71 | 3.003371 | 2.284726 | 4.446786 |
+| Dense Urban | Mid | 60 m < hTx <= 100 m | 61 | 2.733034 | 2.236759 | 4.138982 |
+| Dense Urban | High | hTx > 100 m | 63 | 2.057376 | 1.916766 | 3.259358 |
 
 ## Global antenna bins (3 groups)
 
 | Antenna bin | Height rule | Maps | Overall RMSE | LoS RMSE | NLoS RMSE |
 |---|---|---:|---:|---:|---:|
-| Low | hTx <= 58.12 m | 846 | 2.142552 | 1.787203 | 3.751065 |
-| Mid | 58.12 m < hTx <= 103.85 m | 878 | 1.981378 | 1.784877 | 3.522459 |
-| High | hTx > 103.85 m | 866 | 1.694075 | 1.659540 | 2.650380 |
+| Low | hTx <= 60 m | 899 | 2.143673 | 1.792340 | 3.752598 |
+| Mid | 60 m < hTx <= 100 m | 773 | 1.968180 | 1.774658 | 3.507952 |
+| High | hTx > 100 m | 918 | 1.711741 | 1.669689 | 2.761975 |

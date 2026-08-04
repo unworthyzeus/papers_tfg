@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-07-31T10:23:43Z",
+  "generated_utc": "2026-08-04T14:42:31Z",
   "split_contract": {
     "source": "Try 74/75 compatible split_city_holdout_try80",
     "split_seed": 42,
@@ -87,16 +87,16 @@
       "split": "test",
       "variant": "regime_nlos_ridge",
       "label": "FSPL + refitted radial LoS + frozen itu3 building-maximum NLoS ridge",
-      "overall_rmse_db": 3.7292385336740956,
-      "overall_mae_db": 2.9328524634436492,
+      "overall_rmse_db": 3.729322541440767,
+      "overall_mae_db": 2.9328813057597483,
       "overall_pixels": 423087119,
       "los_rmse_db": 3.7443499842355665,
       "los_mae_db": 2.9677887331891646,
       "los_pixels": 391721805,
-      "nlos_rmse_db": 3.5350744501583145,
-      "nlos_mae_db": 2.4965329467737316,
+      "nlos_rmse_db": 3.5362696834466782,
+      "nlos_mae_db": 2.496922001141997,
       "nlos_pixels": 31365314,
-      "map_correlation": 0.729290855188647,
+      "map_correlation": 0.7292849007478376,
       "maps": 2590
     }
   },
@@ -219,7 +219,12 @@
         }
       }
     },
-    "unique_topology_rasters": 3229
+    "unique_topology_rasters": 3229,
+    "antenna_height_routing": {
+      "low_ant": "h_tx <= 60 m",
+      "mid_ant": "60 m < h_tx <= 100 m",
+      "high_ant": "h_tx > 100 m"
+    }
   },
   "visibility_shares": {
     "full_cells": 681607710,
@@ -262,14 +267,14 @@
     "method": "percentile bootstrap, cities sampled with replacement; pixel-weighted metrics recomputed",
     "intervals": {
       "overall_rmse_db": {
-        "low_95": 3.517976093506928,
-        "median": 3.736406739747144,
-        "high_95": 3.8582895736417777
+        "low_95": 3.5179759650099878,
+        "median": 3.736513312506678,
+        "high_95": 3.858524311411023
       },
       "overall_mae_db": {
-        "low_95": 2.731525423375255,
-        "median": 2.9399552853986366,
-        "high_95": 3.0510248825929436
+        "low_95": 2.7315476700119534,
+        "median": 2.9399886733375604,
+        "high_95": 3.051086557839833
       },
       "los_rmse_db": {
         "low_95": 3.5280185489882605,
@@ -282,28 +287,28 @@
         "high_95": 3.0866662583357547
       },
       "nlos_rmse_db": {
-        "low_95": 3.2340068862763838,
-        "median": 3.5175287074947796,
-        "high_95": 3.845688100385671
+        "low_95": 3.2334698029868236,
+        "median": 3.5186142868932824,
+        "high_95": 3.848210328408156
       },
       "nlos_mae_db": {
-        "low_95": 2.2648942261096514,
-        "median": 2.4820880488006436,
-        "high_95": 2.7560361251581513
+        "low_95": 2.2652588259089237,
+        "median": 2.4823420533804263,
+        "high_95": 2.756390098817816
       },
       "macro_city_rmse_db": {
-        "low_95": 3.469890064367635,
-        "median": 3.6857003278962868,
-        "high_95": 3.8350235340426333
+        "low_95": 3.470273351771399,
+        "median": 3.685896789448265,
+        "high_95": 3.8350630946388344
       },
       "map_correlation": {
-        "low_95": 0.7110863040260862,
-        "median": 0.7290918205721496,
-        "high_95": 0.7561475577151652
+        "low_95": 0.7110831339535235,
+        "median": 0.7290849076830719,
+        "high_95": 0.7561419994717165
       }
     }
   },
-  "macro_city_rmse_db": 3.681381793734617,
+  "macro_city_rmse_db": 3.6815574029750726,
   "visibility_contract": {
     "source": "binary LineOfSight output from the configured MATLAB ray tracer, stored with each HDF5 sample",
     "identity_key": "city geometry, transmitter position and height, receiver grid, and ray-tracing settings",
@@ -315,13 +320,13 @@
       "platform": "Windows-11-10.0.26200-SP0",
       "processor": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
       "python": "3.12.10",
-      "numpy": "2.4.4"
+      "numpy": "2.4.3"
     },
     "scope": "HDF5 read measured separately; core computes FSPL plus refitted radial LoS and frozen ITU 3 COST231 ridge NLoS",
-    "hdf5_read_median_s": 0.0054400999997596955,
-    "hdf5_read_p95_s": 0.006413185000201338,
-    "prior_core_median_s": 0.06601899999986927,
-    "prior_core_p95_s": 0.08744484999988343,
+    "hdf5_read_median_s": 0.0038128500018501654,
+    "hdf5_read_p95_s": 0.004716624998945917,
+    "prior_core_median_s": 0.04109884999888891,
+    "prior_core_p95_s": 0.052806605001387646,
     "external_ray_tracing_reference": {
       "maps": 5,
       "seed": 20260715,
@@ -347,7 +352,7 @@
         "all_equal": true,
         "identity_key": "city geometry, transmitter position and height, receiver grid, and ray-tracing settings"
       },
-      "raw_median_wall_clock_ratio_vs_prior": 1549.383326015277,
+      "raw_median_wall_clock_ratio_vs_prior": 2488.8467147563824,
       "comparability": "same CPU and spatial resolution, but different output scope and timing boundaries; the ratio is not a like-for-like algorithmic speedup"
     }
   },
@@ -408,6 +413,17 @@
       "gamma_estimator": "Rayleigh maximum-likelihood scale sqrt(mean(building_max_height^2)/2)",
       "raster_interpretation_note": "P.1410-6 defines a building-height distribution but does not prescribe mean-versus-maximum reduction for an irregular height raster",
       "meters_per_pixel": 1.0
+    },
+    "antenna_height_routing": {
+      "thresholds_m": [
+        60.0,
+        100.0
+      ],
+      "rules": {
+        "low_ant": "h_tx <= 60 m",
+        "mid_ant": "60 m < h_tx <= 100 m",
+        "high_ant": "h_tx > 100 m"
+      }
     }
   }
 }
