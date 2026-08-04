@@ -554,14 +554,47 @@ jointly fitted, correlated regressors; they need not mean that one physical
 effect reverses in isolation. They do show that the fitted relationship, not
 only its intercept, differs by morphology.
 
-A cross-paper neural accuracy number cannot be treated as a controlled
-benchmark without retraining on this dataset. For context, RadioUNet reports a
-0.020 gray-level RMSE on its deterministic DPM test, equivalent to
-\SI{1.60}{dB} under that paper's 80-dB scaling~\cite{radiounet2020}. Its
-$256^2$ terrestrial RadioMapSeer setting, fixed-height protocol, target support,
-and split differ from our $513^2$ variable-height city holdout. We therefore
-report this value as scale context, not as evidence that either method is more
-accurate.
+\begin{table}[t]
+\centering
+\caption{Reported RMSE [dB]. Only the first two rows share a test contract.}
+\label{tab:accuracy-context}
+\scriptsize
+\setlength{\tabcolsep}{1.5pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.55cm}>{\raggedright\arraybackslash}p{1.95cm}rrr@{}}
+\toprule
+Method & Evaluation contract & All & LoS & NLoS \\
+\midrule
+Proposed & CKM city holdout & 1.9287 & 1.7370 & 3.5351 \\
+GMM U-Net & Same split and masks & 4.3606 & 4.4323 & 3.3381 \\
+RadioUNet \cite{radiounet2020} & RadioMapSeer DPM & 1.60 & -- & -- \\
+RadioVAE$_C$ \cite{radiovae2025} & RadioMapSeer DPM & 1.42 & -- & -- \\
+TSRDiff \cite{tsrdiff2025} & BRAT-Lab, 10\% samples & 3.62 & -- & -- \\
+RO-HMTGP \cite{rohmtgp2025} & Measured RSRP & 4.19--6.00 & -- & -- \\
+\bottomrule
+\end{tabular}
+\vspace{-4pt}
+\end{table}
+
+The GMM U-Net is a controlled neural alternative: a height-conditioned mixture
+head and U-Net decoder, separated into six topology classes and LoS/NLoS
+experts, are evaluated on the same 2590 maps and receiver masks. It is the best
+purely neural approach found in an internal exploration of over 50 model
+configurations. Its lower NLoS error shows where distribution-aware learning
+can help, while the substantially lower LoS and overall errors of the proposed
+model show the value of resolving the stable coherent component explicitly.
+This neural result is included as a preview, not as the final hybrid: a
+following paper will train neural models to refine the calibrated priors for
+attenuation, delay spread, and angular spread.
+
+The remaining rows are published context, not a controlled ranking. RadioUNet
+reports 0.020 gray-level RMSE, or \SI{1.60}{dB} under its 80-dB scaling;
+RadioVAE$_C$ reports 0.0177, or \SI{1.42}{dB}, without input measurements
+\cite{radiounet2020,radiovae2025}. Both use $256^2$ fixed-height terrestrial
+RadioMapSeer data. TSRDiff uses sparse target measurements, and RO-HMTGP
+predicts measured RSRP across six cells rather than dense simulated
+attenuation. Their reported
+RMSE values therefore indicate scale under different tasks, not superiority
+over the present $513^2$ variable-height city holdout.
 
 \subsection{Computational Comparison}
 Table~\ref{tab:compute} uses the same AMD Ryzen 5 5600X, six CPU threads, batch
@@ -623,14 +656,16 @@ calibration partition, with transmitter height refining that partition and
 the regional morphology scale carrying most of the useful local context.
 
 The model is intended as a physical/statistical base rather than a rejection
-of deep learning. A future journal paper will use analogous calibrated priors
-for delay and angular spread and investigate distribution-aware neural
-refinement of all three outputs. Its multi-output runtime will not be directly
-comparable to this attenuation-only benchmark, but the present computational
-gap shows that the prior-first strategy is significant and worth preserving.
+of deep learning. The controlled GMM U-Net result identifies NLoS as the
+promising refinement target, but also shows the cost of asking a network to
+relearn the coherent LoS field. A future journal paper will instead train
+distribution-aware networks to refine analogous calibrated priors for
+attenuation, delay spread, and angular spread. Its multi-output runtime will
+not be directly comparable to this attenuation-only benchmark, but the present
+computational gap shows that the prior-first strategy is significant and worth
+preserving.
 
 \bibliographystyle{IEEEtran}
-\IEEEtriggeratref{12}
 \bibliography{references}
 
 \end{document}

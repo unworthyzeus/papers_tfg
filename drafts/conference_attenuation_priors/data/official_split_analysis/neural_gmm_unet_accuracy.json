@@ -1,0 +1,21 @@
+{
+  "model_label_in_paper": "GMM U-Net",
+  "description": "Height-conditioned GMM head and U-Net decoder with six topology classes and separate LoS/NLoS experts.",
+  "selection_context": "Best purely neural approach in an internal exploration of over 50 model configurations.",
+  "evaluation_contract": {
+    "split": "official city-holdout test split",
+    "test_maps": 2590,
+    "valid_los_pixels": 391721805,
+    "valid_nlos_pixels": 31365314,
+    "valid_total_pixels": 423087119,
+    "building_pixels_excluded": true
+  },
+  "pixel_weighted_rmse_db": {
+    "overall": 4.36064531424324,
+    "los": 4.4323330862564845,
+    "nlos": 3.3380818597035904
+  },
+  "overall_formula": "sqrt((N_los * RMSE_los^2 + N_nlos * RMSE_nlos^2) / (N_los + N_nlos))",
+  "source_run_artifact": "../../../../../TFGpractice/TFGSeventySixthTry76/tmp_try76_directml_test_metrics.json",
+  "comparison_note": "Only this neural row and the proposed model share the same test maps, receiver masks, and metric denominator. Published rows in the paper use different datasets or observation contracts."
+}
