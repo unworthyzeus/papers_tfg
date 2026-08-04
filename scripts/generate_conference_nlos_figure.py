@@ -14,7 +14,6 @@ import h5py
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.colors import BoundaryNorm, ListedColormap
 
 from run_conference_attenuation_ablation import compute_cost231_map
 
@@ -78,94 +77,81 @@ def main() -> None:
     valid = ground & np.isfinite(target) & (target >= priors.PATH_LOSS_MIN_DB)
     los = valid & (los_mask > 0.5)
     nlos = valid & (los_mask <= 0.5)
+    prediction = np.where(los_mask > 0.5, los_prior, nlos_prior)
     los_error = los_prior - target
     nlos_error = nlos_prior - target
+    overall_rmse = float(
+        np.sqrt(np.mean(np.square((prediction - target)[valid], dtype=np.float64)))
+    )
     los_rmse = float(np.sqrt(np.mean(np.square(los_error[los], dtype=np.float64))))
     nlos_rmse = float(np.sqrt(np.mean(np.square(nlos_error[nlos], dtype=np.float64))))
 
     mpl.rcParams.update({
         "font.family": "serif",
-        "font.size": 7.0,
-        "axes.titlesize": 7.4,
-        "axes.labelsize": 6.8,
+        "font.size": 7.1,
+        "axes.titlesize": 7.6,
+        "axes.labelsize": 7.0,
     })
-    fig, axes = plt.subplots(2, 4, figsize=(7.12, 3.72), constrained_layout=True)
+    fig, axes = plt.subplots(
+        3,
+        2,
+        figsize=(3.45, 4.82),
+        constrained_layout=True,
+        sharex=True,
+        sharey=True,
+    )
     extent = (-256, 256, -256, 256)
 
-    classes = np.full(topology.shape, 2, dtype=np.uint8)
-    classes[los] = 0
-    classes[nlos] = 1
-    support_cmap = ListedColormap(("#4C78A8", "#F58518", "#4A4A4A"))
-    support_norm = BoundaryNorm((-0.5, 0.5, 1.5, 2.5), support_cmap.N)
-    axes[0, 0].imshow(classes, origin="lower", extent=extent, cmap=support_cmap, norm=support_norm)
-    axes[0, 0].set_title("(a) Support\nLoS / NLoS / buildings")
-
     attenuation_cmap = mpl.colormaps["viridis"].copy()
-    attenuation_cmap.set_bad("#E6E6E6")
-    im_target = axes[0, 1].imshow(
-        masked(target, los), origin="lower", extent=extent,
-        cmap=attenuation_cmap, vmin=75, vmax=145,
+    attenuation_cmap.set_bad("#D9D9D9")
+    rows = (
+        ("All receivers", valid, target, prediction),
+        ("LoS", los, target, los_prior),
+        ("NLoS", nlos, target, nlos_prior),
     )
-    axes[0, 1].set_title("(b) LoS target [dB]")
-    axes[0, 2].imshow(
-        masked(los_prior, los), origin="lower", extent=extent,
-        cmap=attenuation_cmap, vmin=75, vmax=145,
-    )
-    axes[0, 2].set_title("(c) LoS prior [dB]")
+    image = None
+    for row, (label, keep, truth, estimate) in enumerate(rows):
+        image = axes[row, 0].imshow(
+            masked(truth, keep),
+            origin="lower",
+            extent=extent,
+            cmap=attenuation_cmap,
+            vmin=75,
+            vmax=145,
+        )
+        axes[row, 1].imshow(
+            masked(estimate, keep),
+            origin="lower",
+            extent=extent,
+            cmap=attenuation_cmap,
+            vmin=75,
+            vmax=145,
+        )
+        axes[row, 0].set_ylabel(f"{label}\ny [m]", labelpad=1)
 
-    error_cmap = mpl.colormaps["RdBu_r"].copy()
-    error_cmap.set_bad("#E6E6E6")
-    im_error = axes[0, 3].imshow(
-        masked(los_error, los), origin="lower", extent=extent,
-        cmap=error_cmap, vmin=-12, vmax=12,
-    )
-    axes[0, 3].set_title(f"(d) LoS prior - target [dB]\nRMSE {los_rmse:.2f} dB")
-
-    axes[1, 0].imshow(
-        masked(raw, nlos), origin="lower", extent=extent,
-        cmap=attenuation_cmap, vmin=75, vmax=145,
-    )
-    axes[1, 0].set_title(r"(e) COST231 term $\mathrm{PL}_{C}$ [dB]")
-
-    axes[1, 1].imshow(
-        masked(target, nlos), origin="lower", extent=extent,
-        cmap=attenuation_cmap, vmin=75, vmax=145,
-    )
-    axes[1, 1].set_title("(f) NLoS target [dB]")
-    axes[1, 2].imshow(
-        masked(nlos_prior, nlos), origin="lower", extent=extent,
-        cmap=attenuation_cmap, vmin=75, vmax=145,
-    )
-    axes[1, 2].set_title("(g) NLoS prior [dB]")
-    axes[1, 3].imshow(
-        masked(nlos_error, nlos), origin="lower", extent=extent,
-        cmap=error_cmap, vmin=-12, vmax=12,
-    )
-    axes[1, 3].set_title(f"(h) NLoS prior - target [dB]\nRMSE {nlos_rmse:.2f} dB")
+    axes[0, 0].set_title("Ground truth")
+    axes[0, 1].set_title("Frozen model")
 
     for axis in axes.flat:
         axis.set_xticks((-200, 0, 200))
         axis.set_yticks((-200, 0, 200))
         axis.tick_params(length=2, pad=1)
-        axis.set_xlabel("x [m]", labelpad=0)
-    axes[0, 0].set_ylabel("y [m]", labelpad=0)
-    axes[1, 0].set_ylabel("y [m]", labelpad=0)
-    for axis in axes[:, 1:].flat:
+    axes[2, 0].set_xlabel("x [m]", labelpad=0)
+    axes[2, 1].set_xlabel("x [m]", labelpad=0)
+    for axis in axes[:, 1]:
         axis.set_yticklabels([])
 
     cbar_loss = fig.colorbar(
-        im_target,
-        ax=(axes[0, 1], axes[0, 2], axes[1, 0], axes[1, 1], axes[1, 2]),
-        orientation="horizontal", shrink=0.78, pad=0.03,
+        image,
+        ax=axes,
+        orientation="horizontal",
+        shrink=0.82,
+        pad=0.015,
+        aspect=28,
     )
     cbar_loss.set_ticks((80, 110, 140))
+    cbar_loss.set_label("Attenuation [dB]", labelpad=1)
     cbar_loss.ax.tick_params(length=2, pad=1)
-    cbar_error = fig.colorbar(
-        im_error, ax=(axes[0, 3], axes[1, 3]),
-        orientation="horizontal", shrink=0.86, pad=0.03,
-    )
-    cbar_error.set_ticks((-10, 0, 10))
-    cbar_error.ax.tick_params(length=2, pad=1)
 
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(OUTPUT, dpi=320, bbox_inches="tight", facecolor="white")
@@ -178,6 +164,7 @@ def main() -> None:
         "antenna_bin": antenna_bin,
         "los_pixels": int(los.sum()),
         "nlos_pixels": int(nlos.sum()),
+        "overall_rmse_db": overall_rmse,
         "los_rmse_db": los_rmse,
         "nlos_rmse_db": nlos_rmse,
         "raw_nlos_rmse_db": float(np.sqrt(np.mean(np.square((raw - target)[nlos], dtype=np.float64)))),

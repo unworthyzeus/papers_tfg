@@ -542,6 +542,12 @@ def main() -> None:
     parser.add_argument("--hdf5", type=Path, default=HDF5_DEFAULT)
     parser.add_argument("--reference-dir", type=Path, default=REFERENCE_DEFAULT)
     parser.add_argument("--los-calibration", type=Path, default=LOS_CAL_DEFAULT)
+    parser.add_argument(
+        "--itu-router-dir",
+        type=Path,
+        default=None,
+        help="Optional directory containing itu_topology.py for the final per-raster route.",
+    )
     parser.add_argument("--out-dir", type=Path, default=OUTPUT_DEFAULT)
     parser.add_argument("--split-seed", type=int, default=42)
     parser.add_argument("--seed", type=int, default=1234)
@@ -560,6 +566,19 @@ def main() -> None:
     base = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(base)
     official, hybrid_ref, los_model = base._import_reference_modules(args.reference_dir)
+    if args.itu_router_dir is not None:
+        import sys
+
+        sys.path.insert(0, str(args.itu_router_dir.resolve()))
+        from itu_topology import ITUTopologyRouter
+
+        router = ITUTopologyRouter(
+            mode="itu3",
+            meters_per_pixel=float(hybrid_ref.METERS_PER_PIXEL),
+            connectivity=4,
+            min_component_area_m2=1.0,
+        )
+        hybrid_ref.sample_city_type = router.classify
 
     refs = los_model.enumerate_samples(args.hdf5)
     train_refs, val_refs, test_refs = official.split_city_holdout_try80(
@@ -594,6 +613,11 @@ def main() -> None:
             "ridge_lambda": args.ridge_lambda,
             "seed": args.seed,
             "building_pixels": "excluded before fitting and evaluation",
+            "topology_router": (
+                _portable_path(args.itu_router_dir)
+                if args.itu_router_dir is not None
+                else "reference default"
+            ),
         },
         "feature_names": list(FULL_FEATURE_NAMES),
         "variants": {
