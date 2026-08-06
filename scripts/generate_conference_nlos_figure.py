@@ -6,6 +6,7 @@ data visualization of the deployed artifact, not an illustrative redraw.
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -24,9 +25,9 @@ REFERENCE_DIR = Path(r"C:\TFG\TFGpractice\TFGEightiethTry80\scripts\recalibrate_
 EXPERIMENT_DIR = REPO_ROOT / "experiments" / "itu_topology_building_max_ablation"
 CALIBRATION = EXPERIMENT_DIR / "results" / "two_ray_itu3_building_max" / "nlos_regime_calibration_itu.json"
 LOS_CALIBRATION = EXPERIMENT_DIR / "results" / "two_ray_itu3_building_max" / "los_two_ray_refitted_calibration.json"
-OUTPUT = REPO_ROOT / "drafts" / "conference_attenuation_priors" / "figures" / "nlos_heldout_example.png"
-CITY = "Vancouver"
-SAMPLE = "sample_15262"
+DEFAULT_OUTPUT = REPO_ROOT / "drafts" / "conference_attenuation_priors" / "figures" / "nlos_heldout_example.png"
+DEFAULT_CITY = "Vancouver"
+DEFAULT_SAMPLE = "sample_15262"
 ANTENNA_HEIGHT_THRESHOLDS_M = (60.0, 100.0)
 
 
@@ -34,7 +35,17 @@ def masked(values: np.ndarray, keep: np.ndarray) -> np.ma.MaskedArray:
     return np.ma.array(values, mask=~keep)
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--hdf5", type=Path, default=HDF5_PATH)
+    parser.add_argument("--city", default=DEFAULT_CITY)
+    parser.add_argument("--sample", default=DEFAULT_SAMPLE)
+    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    return parser.parse_args()
+
+
 def main() -> None:
+    args = parse_args()
     sys.path.insert(0, str(REFERENCE_DIR))
     import try78_hybrid_path_loss_reference as priors
     import try78_los_path_loss_prior as los_model
@@ -57,8 +68,8 @@ def main() -> None:
     }
     _, los_calibration = los_model.load_calibration(LOS_CALIBRATION)
 
-    with h5py.File(HDF5_PATH, "r") as handle:
-        group = handle[CITY][SAMPLE]
+    with h5py.File(args.hdf5, "r") as handle:
+        group = handle[args.city][args.sample]
         topology = np.asarray(group["topology_map"][...], dtype=np.float32)
         los_mask = np.asarray(group["los_mask"][...], dtype=np.float32)
         target = np.asarray(group["path_loss"][...], dtype=np.float32)
@@ -79,6 +90,8 @@ def main() -> None:
     valid = ground & np.isfinite(target) & (target >= priors.PATH_LOSS_MIN_DB)
     los = valid & (los_mask > 0.5)
     nlos = valid & (los_mask <= 0.5)
+    los_ground = ground & (los_mask > 0.5)
+    nlos_ground = ground & (los_mask <= 0.5)
     prediction = np.where(los_mask > 0.5, los_prior, nlos_prior)
     los_error = los_prior - target
     nlos_error = nlos_prior - target
@@ -107,14 +120,14 @@ def main() -> None:
     attenuation_cmap = mpl.colormaps["viridis"].copy()
     attenuation_cmap.set_bad("#D9D9D9")
     rows = (
-        ("All receivers", valid, target, prediction),
-        ("LOS", los, target, los_prior),
-        ("NLOS", nlos, target, nlos_prior),
+        ("All receivers", valid, ground, target, prediction),
+        ("LOS", los, los_ground, target, los_prior),
+        ("NLOS", nlos, nlos_ground, target, nlos_prior),
     )
     image = None
-    for row, (label, keep, truth, estimate) in enumerate(rows):
+    for row, (label, truth_keep, estimate_keep, truth, estimate) in enumerate(rows):
         image = axes[row, 0].imshow(
-            masked(truth, keep),
+            masked(truth, truth_keep),
             origin="lower",
             extent=extent,
             cmap=attenuation_cmap,
@@ -122,7 +135,7 @@ def main() -> None:
             vmax=145,
         )
         axes[row, 1].imshow(
-            masked(estimate, keep),
+            masked(estimate, estimate_keep),
             origin="lower",
             extent=extent,
             cmap=attenuation_cmap,
@@ -155,12 +168,13 @@ def main() -> None:
     cbar_loss.set_label("Attenuation [dB]", labelpad=1)
     cbar_loss.ax.tick_params(length=2, pad=1)
 
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(OUTPUT, dpi=320, bbox_inches="tight", facecolor="white")
+    output = args.output.resolve()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output, dpi=320, bbox_inches="tight", facecolor="white")
     print(json.dumps({
-        "output": str(OUTPUT),
-        "city": CITY,
-        "sample": SAMPLE,
+        "output": str(output),
+        "city": args.city,
+        "sample": args.sample,
         "transmitter_height_m": h_tx,
         "topology_class": topology_class,
         "antenna_bin": antenna_bin,

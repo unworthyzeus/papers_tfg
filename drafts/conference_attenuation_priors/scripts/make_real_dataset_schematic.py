@@ -254,7 +254,7 @@ def build_figure(data: dict[str, object], city: str, sample: str) -> plt.Figure:
     add_panel(
         axes[2],
         np.asarray(data["los_mask"]),
-        "LoS mask",
+        "LOS mask",
         ListedColormap(["#f2f2f2", "#3d83ad"]),
         vmin=0.0,
         vmax=1.0,
