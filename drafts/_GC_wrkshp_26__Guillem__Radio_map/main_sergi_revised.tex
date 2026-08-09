@@ -388,12 +388,12 @@ Table~\ref{tab:compute} reports same-CPU medians on an AMD Ryzen 5 5600X with GP
 \setlength{\tabcolsep}{2.2pt}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-Method & Grid & Stored state & MACs & CPU [s] \\
+Method & Grid & Stored scalars & Counted MACs/map & CPU [s] \\
 \midrule
 Proposed & $513\times513$ & 66.8k+126 & 3.684M$^\ast$ & 0.0602 \\
 RadioUNet~\cite{radiounet2020} & $256\times256$ & 13.27M & 12.73G & 0.1339 \\
 PMNet~\cite{pmnet2023} & $256\times256$ & 33.34M & 52.71G & 0.4042 \\
-SSL-Radio~\cite{sslradio2025} & $256\times256$ & 15.4--20.4M & 16.9--21.9G$^\dagger$ & -- \\
+SSL-Radio~\cite{sslradio2025} & $256\times256$ & $\approx$15.4--20.4M & $\approx$16.9--21.9G$^\dagger$ & -- \\
 MATLAB RT & $513\times513$ & -- & -- & 102.289 \\
 \bottomrule
 \end{tabular}
